@@ -64,6 +64,7 @@ interface Article {
   visibility: 'public' | 'private' | 'restricted'; // 可见度配置
   allowedUsers?: string[]; // 当 visibility 为 restricted 时，允许访问的用户 ID 列表
   folderId?: string | null; // 归属文件夹 ID
+  authorId?: string; // 创建者的 User ID，用于注销时判断是否有资产
 }
 ```
 

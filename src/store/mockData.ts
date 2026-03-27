@@ -26,6 +26,7 @@ export interface Article {
   visibility: 'public' | 'private' | 'restricted';
   allowedUsers?: string[];
   folderId?: string | null;
+  authorId?: string;
 }
 
 export const mockFolders: Folder[] = [
@@ -74,6 +75,7 @@ function workLoopConcurrent() {
     status: 'published',
     visibility: 'public',
     folderId: 'f1',
+    authorId: 'admin',
   },
   {
     id: "2",

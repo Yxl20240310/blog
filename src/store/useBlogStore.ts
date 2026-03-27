@@ -28,6 +28,7 @@ interface BlogState {
   login: (user: User) => void;
   logout: () => void;
   register: (user: User) => void;
+  deregister: (userId: string) => void;
   
   // Admin Actions
   addArticle: (article: Omit<Article, 'id' | 'likes' | 'dislikes' | 'views' | 'date'>) => void;
@@ -112,6 +113,23 @@ export const useBlogStore = create<BlogState>((set) => ({
     localStorage.setItem('blog_users', JSON.stringify(users));
   },
 
+  deregister: (userId) => set((state) => {
+    // 1. Remove user from localStorage
+    const users = JSON.parse(localStorage.getItem('blog_users') || '[]');
+    const updatedUsers = users.filter((u: any) => u.id !== userId);
+    localStorage.setItem('blog_users', JSON.stringify(updatedUsers));
+
+    // 2. Remove user's articles (optional: could also keep them but assign to 'system')
+    // Here we choose to delete them to simulate full account deletion
+    const newArticles = state.articles.filter(a => a.authorId !== userId);
+    localStorage.setItem('blog_articles', JSON.stringify(newArticles));
+
+    // 3. Clear current user session
+    localStorage.removeItem('blog_current_user');
+    
+    return { currentUser: null, isAdmin: false, articles: newArticles };
+  }),
+
   addArticle: (articleData) => set((state) => {
     const newArticle: Article = {
       ...articleData,
@@ -120,6 +138,7 @@ export const useBlogStore = create<BlogState>((set) => ({
       dislikes: 0,
       views: 0,
       date: new Date().toISOString().split('T')[0],
+      authorId: state.currentUser?.id || 'admin',
     };
     const newArticles = [newArticle, ...state.articles];
     localStorage.setItem('blog_articles', JSON.stringify(newArticles));

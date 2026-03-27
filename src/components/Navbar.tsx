@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Search, Terminal, Lock, Settings, User } from 'lucide-react';
+import { Search, Terminal, Lock, Settings, User, LogOut, UserMinus } from 'lucide-react';
 import { useBlogStore } from '../store/useBlogStore';
 import { cn } from '../utils/cn';
+import { DeregisterModal } from './DeregisterModal';
 
 export const Navbar = () => {
   const { searchQuery, setSearchQuery, isAdmin, currentUser, logout } = useBlogStore();
   const location = useLocation();
   const navigate = useNavigate();
   const isHome = location.pathname === '/';
+  const [isDeregisterOpen, setIsDeregisterOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -16,7 +18,8 @@ export const Navbar = () => {
   };
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-lg border-b border-white/10">
+    <>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-lg border-b border-white/10">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link 
           to="/" 
@@ -71,8 +74,17 @@ export const Navbar = () => {
               <button
                 onClick={handleLogout}
                 className="text-xs font-mono text-white/50 hover:text-white flex items-center gap-1.5 transition-colors"
+                title="Logout"
               >
-                LOGOUT
+                <LogOut className="w-4 h-4" />
+              </button>
+
+              <button
+                onClick={() => setIsDeregisterOpen(true)}
+                className="text-xs font-mono text-red-500/70 hover:text-red-400 flex items-center gap-1.5 transition-colors ml-2"
+                title="Deregister Account"
+              >
+                <UserMinus className="w-4 h-4" />
               </button>
             </>
           ) : (
@@ -94,5 +106,10 @@ export const Navbar = () => {
         </div>
       </div>
     </nav>
+    <DeregisterModal 
+      isOpen={isDeregisterOpen} 
+      onClose={() => setIsDeregisterOpen(false)} 
+    />
+  </>
   );
 };
