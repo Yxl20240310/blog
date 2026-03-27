@@ -52,6 +52,8 @@ interface Article {
   views: number;
   date: string;
   status: 'draft' | 'published'; // 新增状态字段
+  visibility: 'public' | 'private' | 'restricted'; // 可见度配置
+  allowedUsers?: string[]; // 当 visibility 为 restricted 时，允许访问的用户 ID 列表
 }
 ```
 

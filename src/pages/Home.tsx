@@ -8,19 +8,34 @@ import { PageTransition } from '../components/PageTransition';
 import { cn } from '../utils/cn';
 
 export default function Home() {
-  const { articles, searchQuery, selectedTag, setSelectedTag } = useBlogStore();
+  const { articles, searchQuery, selectedTag, setSelectedTag, currentUser, isAdmin } = useBlogStore();
 
   // Extract all unique tags
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    articles.forEach(article => article.tags.forEach(t => tags.add(t)));
+    articles.forEach(article => {
+      // 仅提取有权限查看的文章的标签
+      const canView = article.visibility === 'public' || 
+                      isAdmin || 
+                      (article.visibility === 'restricted' && currentUser && article.allowedUsers?.includes(currentUser.id));
+      if (canView && article.status === 'published') {
+        article.tags.forEach(t => tags.add(t));
+      }
+    });
     return Array.from(tags);
-  }, [articles]);
+  }, [articles, currentUser, isAdmin]);
 
   // Filter and sort articles (only show published articles on home page)
   const filteredArticles = useMemo(() => {
     return articles
       .filter(article => article.status === 'published')
+      .filter(article => {
+        // 权限过滤：公开、管理员、或者被授权的用户
+        if (article.visibility === 'public') return true;
+        if (isAdmin) return true;
+        if (article.visibility === 'restricted' && currentUser && article.allowedUsers?.includes(currentUser.id)) return true;
+        return false;
+      })
       .filter(article => {
         // 隐藏点踩数超过点赞数 10% 的文章
         const dislikeRatio = article.likes > 0 ? article.dislikes / article.likes : (article.dislikes > 0 ? 1 : 0);
@@ -128,6 +143,11 @@ export default function Home() {
                             <Eye className="w-3.5 h-3.5" />
                             {article.views}
                           </span>
+                          {article.visibility !== 'public' && (
+                            <span className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-white/60">
+                              {article.visibility === 'private' ? 'PRIVATE' : 'RESTRICTED'}
+                            </span>
+                          )}
                         </div>
                         <div className="flex gap-2">
                           {article.tags.map(tag => (

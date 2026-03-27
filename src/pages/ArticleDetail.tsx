@@ -12,7 +12,7 @@ import { PageTransition } from '../components/PageTransition';
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { articles, comments, addComment, voteArticle } = useBlogStore();
+  const { articles, comments, addComment, voteArticle, currentUser, isAdmin } = useBlogStore();
   
   const article = articles.find(a => a.id === id);
   const articleComments = comments.filter(c => c.articleId === id);
@@ -20,12 +20,23 @@ export default function ArticleDetail() {
   const [newComment, setNewComment] = useState('');
   const [hasVoted, setHasVoted] = useState<'like' | 'dislike' | null>(null);
 
-  if (!article) {
+  // 检查是否有权限访问
+  const hasAccess = () => {
+    if (!article) return false;
+    if (article.visibility === 'public') return true;
+    if (isAdmin) return true;
+    if (article.visibility === 'restricted' && currentUser && article.allowedUsers?.includes(currentUser.id)) return true;
+    return false;
+  };
+
+  if (!article || !hasAccess()) {
     return (
       <PageTransition>
         <div className="flex flex-col items-center justify-center min-h-[60vh]">
-          <h1 className="text-4xl font-mono text-cyan-500 mb-4">404</h1>
-          <p className="text-white/60 mb-8 font-mono">ERR: LOG_NOT_FOUND</p>
+          <h1 className="text-4xl font-mono text-cyan-500 mb-4">{!article ? '404' : '403'}</h1>
+          <p className="text-white/60 mb-8 font-mono">
+            {!article ? 'ERR: LOG_NOT_FOUND' : 'ERR: ACCESS_DENIED'}
+          </p>
           <Button onClick={() => navigate('/')}>RETURN_TO_BASE</Button>
         </div>
       </PageTransition>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, Globe, ArrowLeft, Terminal } from 'lucide-react';
-import { useBlogStore } from '../store/useBlogStore';
+import { Save, Globe, ArrowLeft, Terminal, Lock, Users, Eye } from 'lucide-react';
+import { useBlogStore, User } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
 import { Button } from '../components/Button';
 import { PageTransition } from '../components/PageTransition';
@@ -18,6 +18,11 @@ export default function AdminEditor() {
   const [summary, setSummary] = useState('');
   const [content, setContent] = useState('');
   const [tagsInput, setTagsInput] = useState('');
+  const [visibility, setVisibility] = useState<'public' | 'private' | 'restricted'>('public');
+  const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
+
+  // 获取所有注册用户用于选择
+  const allUsers: User[] = JSON.parse(localStorage.getItem('blog_users') || '[]');
 
   // 初始化编辑数据
   useEffect(() => {
@@ -26,6 +31,8 @@ export default function AdminEditor() {
       setSummary(existingArticle.summary);
       setContent(existingArticle.content);
       setTagsInput(existingArticle.tags.join(', '));
+      setVisibility(existingArticle.visibility || 'public');
+      setAllowedUsers(existingArticle.allowedUsers || []);
     } else if (isEditing && !existingArticle) {
       navigate('/admin'); // 找不到文章返回后台
     }
@@ -44,6 +51,8 @@ export default function AdminEditor() {
       content,
       tags,
       status,
+      visibility,
+      allowedUsers: visibility === 'restricted' ? allowedUsers : undefined,
     };
 
     if (isEditing && id) {
@@ -133,6 +142,88 @@ export default function AdminEditor() {
                   className="w-full bg-black/50 border border-white/10 rounded-md p-3 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
                 />
               </div>
+
+              <div>
+                <label className="block text-xs font-mono text-cyan-500 mb-3">VISIBILITY</label>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                    <input 
+                      type="radio" 
+                      name="visibility" 
+                      value="public"
+                      checked={visibility === 'public'}
+                      onChange={() => setVisibility('public')}
+                      className="text-cyan-500 bg-black/50 border-white/20 focus:ring-cyan-500/50 focus:ring-offset-black"
+                    />
+                    <Eye className="w-4 h-4 text-white/60" />
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white">Public</span>
+                      <span className="text-[10px] text-white/40 font-mono">Visible to everyone</span>
+                    </div>
+                  </label>
+                  
+                  <label className="flex items-center gap-3 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                    <input 
+                      type="radio" 
+                      name="visibility" 
+                      value="private"
+                      checked={visibility === 'private'}
+                      onChange={() => setVisibility('private')}
+                      className="text-cyan-500 bg-black/50 border-white/20 focus:ring-cyan-500/50 focus:ring-offset-black"
+                    />
+                    <Lock className="w-4 h-4 text-white/60" />
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white">Private</span>
+                      <span className="text-[10px] text-white/40 font-mono">Only visible to you (Admin)</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-2 rounded border border-white/10 cursor-pointer hover:bg-white/5 transition-colors">
+                    <input 
+                      type="radio" 
+                      name="visibility" 
+                      value="restricted"
+                      checked={visibility === 'restricted'}
+                      onChange={() => setVisibility('restricted')}
+                      className="text-cyan-500 bg-black/50 border-white/20 focus:ring-cyan-500/50 focus:ring-offset-black"
+                    />
+                    <Users className="w-4 h-4 text-white/60" />
+                    <div className="flex flex-col">
+                      <span className="text-sm text-white">Restricted</span>
+                      <span className="text-[10px] text-white/40 font-mono">Visible to selected users</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              {visibility === 'restricted' && (
+                <div className="p-3 bg-white/5 border border-white/10 rounded-md">
+                  <label className="block text-[10px] font-mono text-cyan-500 mb-2 uppercase">Select Allowed Users</label>
+                  <div className="max-h-32 overflow-y-auto space-y-1">
+                    {allUsers.filter(u => u.role !== 'admin').length === 0 ? (
+                      <div className="text-xs text-white/40 italic">No registered users found.</div>
+                    ) : (
+                      allUsers.filter(u => u.role !== 'admin').map(user => (
+                        <label key={user.id} className="flex items-center gap-2 text-sm text-white/80 cursor-pointer">
+                          <input 
+                            type="checkbox"
+                            checked={allowedUsers.includes(user.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setAllowedUsers([...allowedUsers, user.id]);
+                              } else {
+                                setAllowedUsers(allowedUsers.filter(id => id !== user.id));
+                              }
+                            }}
+                            className="rounded border-white/20 bg-black/50 text-cyan-500 focus:ring-cyan-500/50 focus:ring-offset-black"
+                          />
+                          {user.username}
+                        </label>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </GlassCard>
           </div>
         </div>
