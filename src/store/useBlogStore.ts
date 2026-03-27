@@ -6,6 +6,7 @@ export interface User {
   username: string;
   password?: string;
   role: 'user' | 'admin';
+  lastLogin?: string;
 }
 
 interface BlogState {
@@ -29,6 +30,7 @@ interface BlogState {
   addArticle: (article: Omit<Article, 'id' | 'likes' | 'views' | 'date'>) => void;
   updateArticle: (id: string, updates: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
+  resetUserPassword: (userId: string, newPassword: string) => void;
 }
 
 // 尝试从 localStorage 获取初始数据
@@ -66,8 +68,19 @@ export const useBlogStore = create<BlogState>((set) => ({
   })),
 
   login: (user) => set(() => {
-    localStorage.setItem('blog_current_user', JSON.stringify(user));
-    return { currentUser: user, isAdmin: user.role === 'admin' };
+    const loginTime = new Date().toISOString();
+    const updatedUser = { ...user, lastLogin: loginTime };
+    
+    // 更新本地存储中该用户的最后登录时间
+    const users = JSON.parse(localStorage.getItem('blog_users') || '[]');
+    const userIndex = users.findIndex((u: any) => u.id === user.id);
+    if (userIndex !== -1) {
+      users[userIndex].lastLogin = loginTime;
+      localStorage.setItem('blog_users', JSON.stringify(users));
+    }
+
+    localStorage.setItem('blog_current_user', JSON.stringify(updatedUser));
+    return { currentUser: updatedUser, isAdmin: updatedUser.role === 'admin' };
   }),
 
   logout: () => set(() => {
@@ -108,4 +121,13 @@ export const useBlogStore = create<BlogState>((set) => ({
     localStorage.setItem('blog_articles', JSON.stringify(newArticles));
     return { articles: newArticles };
   }),
+
+  resetUserPassword: (userId, newPassword) => {
+    const users = JSON.parse(localStorage.getItem('blog_users') || '[]');
+    const userIndex = users.findIndex((u: any) => u.id === userId);
+    if (userIndex !== -1) {
+      users[userIndex].password = newPassword;
+      localStorage.setItem('blog_users', JSON.stringify(users));
+    }
+  },
 }));

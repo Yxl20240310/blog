@@ -22,7 +22,7 @@ graph TD
 | `/article/:id` | 详情页：展示文章全文、评论区及快捷导航（需登录访问） |
 | `/login` | 用户/管理员登录页 |
 | `/register` | 普通用户注册页 |
-| `/admin` | 管理后台主页（需鉴权）：展示文章列表、删除、发布操作 |
+| `/admin` | 管理后台主页（需鉴权）：展示文章列表管理与用户管理（多 Tab 切换） |
 | `/admin/editor/:id?` | 文章编辑器（需鉴权）：新建或编辑文章 |
 
 ## 4. 数据模型 (Mock)
@@ -35,6 +35,7 @@ interface User {
   username: string;
   password?: string; // 仅模拟，实际项目应加密
   role: 'user' | 'admin';
+  lastLogin?: string; // 最近一次登录时间
 }
 ```
 

@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit, Trash2, Globe, FileText, Settings, AlertTriangle } from 'lucide-react';
-import { useBlogStore } from '../store/useBlogStore';
+import { Plus, Edit, Trash2, Globe, FileText, Settings, AlertTriangle, Users, Terminal, Key } from 'lucide-react';
+import { useBlogStore, User } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
 import { Button } from '../components/Button';
 import { PageTransition } from '../components/PageTransition';
 
 export default function AdminDashboard() {
-  const { articles, deleteArticle, updateArticle } = useBlogStore();
+  const { articles, deleteArticle, updateArticle, resetUserPassword } = useBlogStore();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<'articles' | 'users'>('articles');
 
   const handleDelete = (id: string, title: string) => {
     if (window.confirm(`WARNING: Are you sure you want to delete "\${title}"?\nThis action cannot be undone.`)) {
@@ -21,6 +22,16 @@ export default function AdminDashboard() {
     updateArticle(id, { status: newStatus });
   };
 
+  const handleResetPassword = (user: User) => {
+    const newPassword = prompt(`Enter new password for user \${user.username}:`);
+    if (newPassword) {
+      resetUserPassword(user.id, newPassword);
+      alert(`Password for \${user.username} has been reset successfully.`);
+    }
+  };
+
+  const users: User[] = JSON.parse(localStorage.getItem('blog_users') || '[]');
+
   return (
     <PageTransition>
       <div className="max-w-5xl mx-auto pb-20">
@@ -30,16 +41,43 @@ export default function AdminDashboard() {
               <Settings className="w-8 h-8 text-cyan-500" />
               SYSTEM_DASHBOARD
             </h1>
-            <p className="text-sm font-mono text-white/40">Manage your data logs and transmissions.</p>
+            <p className="text-sm font-mono text-white/40">Manage your data logs and system users.</p>
           </div>
-          <Button onClick={() => navigate('/admin/editor')} className="gap-2">
-            <Plus className="w-4 h-4" /> NEW_LOG
-          </Button>
+          {activeTab === 'articles' && (
+            <Button onClick={() => navigate('/admin/editor')} className="gap-2">
+              <Plus className="w-4 h-4" /> NEW_LOG
+            </Button>
+          )}
+        </div>
+
+        {/* Tabs */}
+        <div className="flex gap-4 mb-6 border-b border-white/10 pb-4">
+          <button
+            onClick={() => setActiveTab('articles')}
+            className={`flex items-center gap-2 px-4 py-2 font-mono text-sm transition-all \${
+              activeTab === 'articles' 
+                ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 rounded' 
+                : 'text-white/50 hover:text-white'
+            }`}
+          >
+            <Terminal className="w-4 h-4" /> DATA_LOGS
+          </button>
+          <button
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-2 px-4 py-2 font-mono text-sm transition-all \${
+              activeTab === 'users' 
+                ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 rounded' 
+                : 'text-white/50 hover:text-white'
+            }`}
+          >
+            <Users className="w-4 h-4" /> USERS
+          </button>
         </div>
 
         <GlassCard className="p-0 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+          {activeTab === 'articles' ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-white/5 border-b border-white/10 text-xs font-mono text-white/50 uppercase">
                   <th className="p-4">Title / Summary</th>
@@ -111,6 +149,64 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-white/5 border-b border-white/10 text-xs font-mono text-white/50 uppercase">
+                    <th className="p-4">User ID</th>
+                    <th className="p-4 w-32">Role</th>
+                    <th className="p-4 w-48">Last Login</th>
+                    <th className="p-4 w-32 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {users.length === 0 ? (
+                    <tr>
+                      <td colSpan={4} className="p-8 text-center text-white/30 font-mono">
+                        NO_USERS_FOUND
+                      </td>
+                    </tr>
+                  ) : (
+                    users.map((user) => (
+                      <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
+                        <td className="p-4">
+                          <div className="font-bold text-white group-hover:text-cyan-400 transition-colors flex items-center gap-2">
+                            <Users className="w-4 h-4 text-cyan-500" />
+                            {user.username}
+                          </div>
+                          <div className="text-[10px] text-white/30 font-mono mt-1">ID: {user.id}</div>
+                        </td>
+                        <td className="p-4">
+                          <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-mono border \${
+                            user.role === 'admin' 
+                              ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' 
+                              : 'bg-white/5 border-white/10 text-white/60'
+                          }`}>
+                            {user.role.toUpperCase()}
+                          </span>
+                        </td>
+                        <td className="p-4 text-xs font-mono text-white/40">
+                          {user.lastLogin ? new Date(user.lastLogin).toLocaleString() : 'NEVER'}
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button 
+                              onClick={() => handleResetPassword(user)}
+                              className="p-2 text-white/40 hover:text-cyan-400 transition-colors"
+                              title="Reset Password"
+                            >
+                              <Key className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </GlassCard>
       </div>
     </PageTransition>
