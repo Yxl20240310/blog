@@ -95,7 +95,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
-                  <Link to={`/article/\${article.id}`}>
+                  <Link to={`/article/\${article.id}`} className="block h-full">
                     <GlassCard interactive className="group h-full flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-start mb-4">

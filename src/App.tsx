@@ -2,10 +2,11 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from 'framer-motion';
 import { Navbar } from './components/Navbar';
-import { PrivateRoute } from './components/PrivateRoute';
+import { PrivateRoute, AuthRoute } from './components/PrivateRoute';
 import Home from "./pages/Home";
 import ArticleDetail from "./pages/ArticleDetail";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminEditor from "./pages/AdminEditor";
 
@@ -16,8 +17,13 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
-        <Route path="/article/:id" element={<ArticleDetail />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        
+        {/* Protected User Routes */}
+        <Route element={<AuthRoute />}>
+          <Route path="/article/:id" element={<ArticleDetail />} />
+        </Route>
         
         {/* Protected Admin Routes */}
         <Route element={<PrivateRoute />}>

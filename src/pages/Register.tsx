@@ -1,51 +1,52 @@
 import React, { useState } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { Lock, Terminal, AlertTriangle, User } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Lock, Terminal, AlertTriangle, UserPlus } from 'lucide-react';
 import { useBlogStore } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
 import { Button } from '../components/Button';
 import { PageTransition } from '../components/PageTransition';
 
-export default function Login() {
+export default function Register() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, currentUser } = useBlogStore();
+  const { register } = useBlogStore();
 
-  // Redirect if already logged in
-  if (currentUser) {
-    const from = (location.state as any)?.from?.pathname || '/';
-    navigate(from);
-    return null;
-  }
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Check for admin first
-    if (username === 'admin' && password === 'admin123') {
-      login({ id: 'admin', username: 'admin', role: 'admin' });
-      navigate('/admin');
+    if (password !== confirmPassword) {
+      setError('ERR_MISMATCH: Passwords do not match');
       return;
     }
 
-    // Check localStorage for registered users
-    const users = JSON.parse(localStorage.getItem('blog_users') || '[]');
-    const user = users.find((u: any) => u.username === username && u.password === password);
-
-    if (user) {
-      // Remove password before saving to store/current session
-      const { password, ...userWithoutPassword } = user;
-      login(userWithoutPassword);
-      
-      const from = (location.state as any)?.from?.pathname || '/';
-      navigate(from);
-    } else {
-      setError('AUTH_FAILED: Invalid credentials');
+    if (username.trim() === '' || username.length < 3) {
+      setError('ERR_INVALID: ID must be at least 3 characters');
+      return;
     }
+
+    // Check if user already exists
+    const users = JSON.parse(localStorage.getItem('blog_users') || '[]');
+    const existingUser = users.find((u: any) => u.username === username);
+    
+    if (existingUser || username === 'admin') {
+      setError('ERR_CONFLICT: ID already exists');
+      return;
+    }
+
+    // Proceed with registration
+    register({
+      id: `u_\${Date.now()}`,
+      username,
+      password,
+      role: 'user',
+    });
+
+    alert('REGISTRATION SUCCESSFUL. Please login.');
+    navigate('/login');
   };
 
   return (
@@ -54,13 +55,13 @@ export default function Login() {
         <GlassCard className="w-full max-w-md p-8">
           <div className="flex flex-col items-center mb-8">
             <div className="w-16 h-16 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mb-4">
-              <User className="w-8 h-8 text-cyan-400" />
+              <UserPlus className="w-8 h-8 text-cyan-400" />
             </div>
-            <h1 className="text-2xl font-mono text-white tracking-widest">SYSTEM_LOGIN</h1>
-            <p className="text-xs font-mono text-white/40 mt-2">IDENTIFY YOURSELF</p>
+            <h1 className="text-2xl font-mono text-white tracking-widest">INITIATE_USER</h1>
+            <p className="text-xs font-mono text-white/40 mt-2">CREATE NEW CREDENTIALS</p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleRegister} className="space-y-6">
             {error && (
               <div className="bg-red-500/10 border border-red-500/50 text-red-400 text-xs font-mono p-3 rounded flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4" />
@@ -70,14 +71,14 @@ export default function Login() {
             
             <div className="space-y-2">
               <label className="text-xs font-mono text-cyan-500 flex items-center gap-2">
-                <Terminal className="w-3 h-3" /> USER_ID
+                <Terminal className="w-3 h-3" /> NEW_ID
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-black/50 border border-white/10 rounded-none px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-colors"
-                placeholder="Enter your ID..."
+                placeholder="Choose your ID..."
                 required
               />
             </div>
@@ -96,17 +97,28 @@ export default function Login() {
               />
             </div>
 
+            <div className="space-y-2">
+              <label className="text-xs font-mono text-cyan-500 flex items-center gap-2">
+                <Lock className="w-3 h-3" /> CONFIRM_PASSWORD
+              </label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-black/50 border border-white/10 rounded-none px-4 py-3 text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 focus:bg-cyan-500/5 transition-colors"
+                placeholder="Re-enter password..."
+                required
+              />
+            </div>
+
             <Button type="submit" className="w-full h-12 mt-4 text-lg">
-              AUTHENTICATE
+              REGISTER_NOW
             </Button>
             
-            <div className="flex flex-col items-center gap-4 mt-6">
-              <Link to="/register" className="text-xs font-mono text-cyan-500 hover:text-cyan-300 transition-colors border-b border-transparent hover:border-cyan-500 pb-0.5">
-                NO_ACCOUNT? INITIATE_REGISTRATION
+            <div className="text-center mt-6">
+              <Link to="/login" className="text-xs font-mono text-cyan-500 hover:text-cyan-300 transition-colors border-b border-transparent hover:border-cyan-500 pb-0.5">
+                ALREADY_HAVE_ACCESS? LOGIN
               </Link>
-              <p className="text-[10px] font-mono text-white/20">
-                HINT: Admin ID=admin, PWD=admin123
-              </p>
             </div>
           </form>
         </GlassCard>

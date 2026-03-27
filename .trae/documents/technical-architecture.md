@@ -19,13 +19,24 @@ graph TD
 | 路由 | 用途 |
 |------|------|
 | `/` | 首页：展示搜索框、标签筛选和高赞文章列表 |
-| `/article/:id` | 详情页：展示文章全文、评论区及快捷导航 |
-| `/login` | 管理员登录页 |
+| `/article/:id` | 详情页：展示文章全文、评论区及快捷导航（需登录访问） |
+| `/login` | 用户/管理员登录页 |
+| `/register` | 普通用户注册页 |
 | `/admin` | 管理后台主页（需鉴权）：展示文章列表、删除、发布操作 |
 | `/admin/editor/:id?` | 文章编辑器（需鉴权）：新建或编辑文章 |
 
 ## 4. 数据模型 (Mock)
 无需真实后端，前端采用 Mock 数据结构结合 Zustand 状态来模拟所有交互功能：
+
+**用户 (User)**
+```typescript
+interface User {
+  id: string;
+  username: string;
+  password?: string; // 仅模拟，实际项目应加密
+  role: 'user' | 'admin';
+}
+```
 
 **文章 (Article)**
 ```typescript

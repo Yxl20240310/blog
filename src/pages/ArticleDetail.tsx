@@ -17,7 +17,6 @@ export default function ArticleDetail() {
   const articleComments = comments.filter(c => c.articleId === id);
 
   const [newComment, setNewComment] = useState('');
-  const [authorName, setAuthorName] = useState('');
 
   if (!article) {
     return (
@@ -35,9 +34,11 @@ export default function ArticleDetail() {
     e.preventDefault();
     if (!newComment.trim()) return;
     
+    const { currentUser } = useBlogStore.getState();
+    
     addComment({
       articleId: article.id,
-      author: authorName.trim() || 'Anonymous_Geek',
+      author: currentUser?.username || 'Anonymous_Geek',
       content: newComment.trim(),
     });
     
@@ -103,15 +104,6 @@ export default function ArticleDetail() {
 
           <GlassCard className="p-6">
             <form onSubmit={handleCommentSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input
-                  type="text"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  placeholder="ID / NICKNAME (Optional)"
-                  className="bg-black/50 border border-white/10 rounded-md px-4 py-2 text-sm font-mono text-white focus:outline-none focus:border-cyan-500/50 transition-colors"
-                />
-              </div>
               <textarea
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}

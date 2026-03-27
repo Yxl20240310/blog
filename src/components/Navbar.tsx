@@ -1,13 +1,19 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Search, Terminal, Lock, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Search, Terminal, Lock, Settings, User } from 'lucide-react';
 import { useBlogStore } from '../store/useBlogStore';
 import { cn } from '../utils/cn';
 
 export const Navbar = () => {
-  const { searchQuery, setSearchQuery, isAdmin, logout } = useBlogStore();
+  const { searchQuery, setSearchQuery, isAdmin, currentUser, logout } = useBlogStore();
   const location = useLocation();
+  const navigate = useNavigate();
   const isHome = location.pathname === '/';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-lg border-b border-white/10">
@@ -45,30 +51,45 @@ export const Navbar = () => {
         )}
 
         <div className="flex items-center ml-auto gap-4">
-          {isAdmin ? (
+          {currentUser ? (
             <>
-              <Link 
-                to="/admin"
-                className="text-xs font-mono text-cyan-500 hover:text-cyan-300 flex items-center gap-1.5 px-3 py-1.5 border border-cyan-500/30 hover:border-cyan-500 rounded bg-cyan-500/10 transition-all"
-              >
-                <Settings className="w-3.5 h-3.5" />
-                ADMIN_PANEL
-              </Link>
+              {isAdmin && (
+                <Link 
+                  to="/admin"
+                  className="text-xs font-mono text-cyan-500 hover:text-cyan-300 flex items-center gap-1.5 px-3 py-1.5 border border-cyan-500/30 hover:border-cyan-500 rounded bg-cyan-500/10 transition-all"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                  ADMIN_PANEL
+                </Link>
+              )}
+              
+              <div className="flex items-center gap-2 text-xs font-mono text-white/70 bg-white/5 px-3 py-1.5 rounded border border-white/10">
+                <User className="w-3.5 h-3.5 text-cyan-400" />
+                {currentUser.username}
+              </div>
+              
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="text-xs font-mono text-white/50 hover:text-white flex items-center gap-1.5 transition-colors"
               >
                 LOGOUT
               </button>
             </>
           ) : (
-            <Link 
-              to="/login"
-              className="text-xs font-mono text-white/30 hover:text-cyan-500 flex items-center gap-1.5 transition-colors"
-              title="Admin Login"
-            >
-              <Lock className="w-3.5 h-3.5" />
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link 
+                to="/login"
+                className="text-xs font-mono text-white/60 hover:text-cyan-400 flex items-center gap-1.5 transition-colors"
+              >
+                <Lock className="w-3.5 h-3.5" /> LOGIN
+              </Link>
+              <Link 
+                to="/register"
+                className="text-xs font-mono text-cyan-500 border border-cyan-500/50 hover:bg-cyan-500/10 px-3 py-1.5 transition-colors"
+              >
+                REGISTER
+              </Link>
+            </div>
           )}
         </div>
       </div>

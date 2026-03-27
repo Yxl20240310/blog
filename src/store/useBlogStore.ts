@@ -1,33 +1,45 @@
 import { create } from 'zustand';
 import { mockArticles, mockComments, Article, Comment } from './mockData';
 
+export interface User {
+  id: string;
+  username: string;
+  password?: string;
+  role: 'user' | 'admin';
+}
+
 interface BlogState {
   articles: Article[];
   comments: Comment[];
   searchQuery: string;
   selectedTag: string | null;
   isAdmin: boolean;
+  currentUser: User | null;
   
   setSearchQuery: (query: string) => void;
   setSelectedTag: (tag: string | null) => void;
   addComment: (comment: Omit<Comment, 'id' | 'date'>) => void;
   
-  // Admin Actions
-  login: () => void;
+  // Auth Actions
+  login: (user: User) => void;
   logout: () => void;
+  register: (user: User) => void;
+  
+  // Admin Actions
   addArticle: (article: Omit<Article, 'id' | 'likes' | 'views' | 'date'>) => void;
   updateArticle: (id: string, updates: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
 }
 
-// 尝试从 localStorage 获取初始数据，如果没有则使用 mockData
+// 尝试从 localStorage 获取初始数据
 const getInitialArticles = () => {
   const stored = localStorage.getItem('blog_articles');
   return stored ? JSON.parse(stored) : mockArticles;
 };
 
-const getInitialAdminState = () => {
-  return localStorage.getItem('blog_admin') === 'true';
+const getInitialUser = (): User | null => {
+  const stored = localStorage.getItem('blog_current_user');
+  return stored ? JSON.parse(stored) : null;
 };
 
 export const useBlogStore = create<BlogState>((set) => ({
@@ -35,7 +47,8 @@ export const useBlogStore = create<BlogState>((set) => ({
   comments: mockComments,
   searchQuery: '',
   selectedTag: null,
-  isAdmin: getInitialAdminState(),
+  currentUser: getInitialUser(),
+  isAdmin: getInitialUser()?.role === 'admin',
 
   setSearchQuery: (query) => set({ searchQuery: query }),
   
@@ -52,15 +65,22 @@ export const useBlogStore = create<BlogState>((set) => ({
     ],
   })),
 
-  login: () => set(() => {
-    localStorage.setItem('blog_admin', 'true');
-    return { isAdmin: true };
+  login: (user) => set(() => {
+    localStorage.setItem('blog_current_user', JSON.stringify(user));
+    return { currentUser: user, isAdmin: user.role === 'admin' };
   }),
 
   logout: () => set(() => {
-    localStorage.removeItem('blog_admin');
-    return { isAdmin: false };
+    localStorage.removeItem('blog_current_user');
+    return { currentUser: null, isAdmin: false };
   }),
+
+  register: (user) => {
+    // 模拟注册，将用户信息存入 localStorage 中（实际应在后端保存）
+    const users = JSON.parse(localStorage.getItem('blog_users') || '[]');
+    users.push(user);
+    localStorage.setItem('blog_users', JSON.stringify(users));
+  },
 
   addArticle: (articleData) => set((state) => {
     const newArticle: Article = {
