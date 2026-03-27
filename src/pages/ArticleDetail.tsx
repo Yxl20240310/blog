@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowLeft, Calendar, Eye, Heart, MessageSquare, Send } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, Heart, MessageSquare, Send, ThumbsDown, ThumbsUp } from 'lucide-react';
 import { useBlogStore } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
 import { Button } from '../components/Button';
@@ -11,12 +11,13 @@ import { PageTransition } from '../components/PageTransition';
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { articles, comments, addComment } = useBlogStore();
+  const { articles, comments, addComment, voteArticle } = useBlogStore();
   
   const article = articles.find(a => a.id === id);
   const articleComments = comments.filter(c => c.articleId === id);
 
   const [newComment, setNewComment] = useState('');
+  const [hasVoted, setHasVoted] = useState(false);
 
   if (!article) {
     return (
@@ -43,6 +44,12 @@ export default function ArticleDetail() {
     });
     
     setNewComment('');
+  };
+
+  const handleVote = (type: 'like' | 'dislike') => {
+    if (hasVoted) return;
+    voteArticle(article.id, type);
+    setHasVoted(true);
   };
 
   return (
@@ -75,6 +82,10 @@ export default function ArticleDetail() {
               <Heart className="w-4 h-4" />
               {article.likes} LIKES
             </span>
+            <span className="flex items-center gap-2 text-red-500">
+              <ThumbsDown className="w-4 h-4" />
+              {article.dislikes || 0} DISLIKES
+            </span>
           </div>
         </div>
 
@@ -85,13 +96,38 @@ export default function ArticleDetail() {
           </ReactMarkdown>
         </div>
 
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2 mb-16">
-          {article.tags.map(tag => (
-            <span key={tag} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono text-white/60">
-              #{tag}
-            </span>
-          ))}
+        {/* Tags & Actions */}
+        <div className="flex flex-wrap items-center justify-between gap-6 mb-16 border-b border-white/10 pb-8">
+          <div className="flex flex-wrap gap-2">
+            {article.tags.map(tag => (
+              <span key={tag} className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-xs font-mono text-white/60">
+                #{tag}
+              </span>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => handleVote('like')}
+              disabled={hasVoted}
+              className={`flex items-center gap-2 px-4 py-2 border rounded-md font-mono text-sm transition-all \${
+                hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neon-purple/10 hover:border-neon-purple/50'
+              } border-white/20 text-white/80`}
+            >
+              <ThumbsUp className="w-4 h-4 text-neon-purple" />
+              UPVOTE
+            </button>
+            <button 
+              onClick={() => handleVote('dislike')}
+              disabled={hasVoted}
+              className={`flex items-center gap-2 px-4 py-2 border rounded-md font-mono text-sm transition-all \${
+                hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/10 hover:border-red-500/50'
+              } border-white/20 text-white/80`}
+            >
+              <ThumbsDown className="w-4 h-4 text-red-500" />
+              DOWNVOTE
+            </button>
+          </div>
         </div>
 
         {/* Comments Section */}

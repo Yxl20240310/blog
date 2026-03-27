@@ -13,6 +13,7 @@ export interface Article {
   content: string;
   tags: string[];
   likes: number;
+  dislikes: number;
   views: number;
   date: string;
   status: 'draft' | 'published';
@@ -52,6 +53,7 @@ function workLoopConcurrent() {
     `,
     tags: ["React", "前端开发", "源码解析"],
     likes: 342,
+    dislikes: 12,
     views: 1205,
     date: "2026-03-20",
     status: 'published',
@@ -80,6 +82,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     `,
     tags: ["Rust", "前端工程化", "性能优化"],
     likes: 512,
+    dislikes: 60, // 这个点踩数量大于 10%，用于测试首页不展示逻辑
     views: 2301,
     date: "2026-03-22",
     status: 'published',
@@ -113,6 +116,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     `,
     tags: ["CSS", "Tailwind", "设计"],
     likes: 289,
+    dislikes: 5,
     views: 980,
     date: "2026-03-25",
     status: 'published',
@@ -143,6 +147,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     `,
     tags: ["Web3", "区块链", "安全"],
     likes: 156,
+    dislikes: 2,
     views: 890,
     date: "2026-03-26",
     status: 'published',

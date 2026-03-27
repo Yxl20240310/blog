@@ -22,6 +22,11 @@ export default function Home() {
     return articles
       .filter(article => article.status === 'published')
       .filter(article => {
+        // 隐藏点踩数超过点赞数 10% 的文章
+        const dislikeRatio = article.likes > 0 ? article.dislikes / article.likes : (article.dislikes > 0 ? 1 : 0);
+        return dislikeRatio <= 0.1;
+      })
+      .filter(article => {
         const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               article.summary.toLowerCase().includes(searchQuery.toLowerCase());
         const matchesTag = selectedTag ? article.tags.includes(selectedTag) : true;

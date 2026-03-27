@@ -48,6 +48,7 @@ interface Article {
   content: string; // 模拟 Markdown 解析后的 HTML 字符串或直接长文本
   tags: string[];
   likes: number;
+  dislikes: number; // 点踩数量
   views: number;
   date: string;
   status: 'draft' | 'published'; // 新增状态字段

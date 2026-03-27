@@ -27,10 +27,13 @@ interface BlogState {
   register: (user: User) => void;
   
   // Admin Actions
-  addArticle: (article: Omit<Article, 'id' | 'likes' | 'views' | 'date'>) => void;
+  addArticle: (article: Omit<Article, 'id' | 'likes' | 'dislikes' | 'views' | 'date'>) => void;
   updateArticle: (id: string, updates: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
   resetUserPassword: (userId: string, newPassword: string) => void;
+  
+  // Interaction Actions
+  voteArticle: (id: string, type: 'like' | 'dislike') => void;
 }
 
 // 尝试从 localStorage 获取初始数据
@@ -100,6 +103,7 @@ export const useBlogStore = create<BlogState>((set) => ({
       ...articleData,
       id: `a\${Date.now()}`,
       likes: 0,
+      dislikes: 0,
       views: 0,
       date: new Date().toISOString().split('T')[0],
     };
@@ -130,4 +134,19 @@ export const useBlogStore = create<BlogState>((set) => ({
       localStorage.setItem('blog_users', JSON.stringify(users));
     }
   },
+
+  voteArticle: (id, type) => set((state) => {
+    const newArticles = state.articles.map((article) => {
+      if (article.id === id) {
+        return {
+          ...article,
+          likes: type === 'like' ? article.likes + 1 : article.likes,
+          dislikes: type === 'dislike' ? article.dislikes + 1 : article.dislikes,
+        };
+      }
+      return article;
+    });
+    localStorage.setItem('blog_articles', JSON.stringify(newArticles));
+    return { articles: newArticles };
+  }),
 }));
