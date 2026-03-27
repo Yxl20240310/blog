@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ArrowLeft, Calendar, Eye, Heart, MessageSquare, Send, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useBlogStore } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
 import { Button } from '../components/Button';
@@ -17,7 +18,7 @@ export default function ArticleDetail() {
   const articleComments = comments.filter(c => c.articleId === id);
 
   const [newComment, setNewComment] = useState('');
-  const [hasVoted, setHasVoted] = useState(false);
+  const [hasVoted, setHasVoted] = useState<'like' | 'dislike' | null>(null);
 
   if (!article) {
     return (
@@ -49,7 +50,7 @@ export default function ArticleDetail() {
   const handleVote = (type: 'like' | 'dislike') => {
     if (hasVoted) return;
     voteArticle(article.id, type);
-    setHasVoted(true);
+    setHasVoted(type);
   };
 
   return (
@@ -107,26 +108,81 @@ export default function ArticleDetail() {
           </div>
           
           <div className="flex items-center gap-4">
-            <button 
-              onClick={() => handleVote('like')}
-              disabled={hasVoted}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-md font-mono text-sm transition-all \${
-                hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-neon-purple/10 hover:border-neon-purple/50'
-              } border-white/20 text-white/80`}
-            >
-              <ThumbsUp className="w-4 h-4 text-neon-purple" />
-              UPVOTE
-            </button>
-            <button 
-              onClick={() => handleVote('dislike')}
-              disabled={hasVoted}
-              className={`flex items-center gap-2 px-4 py-2 border rounded-md font-mono text-sm transition-all \${
-                hasVoted ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500/10 hover:border-red-500/50'
-              } border-white/20 text-white/80`}
-            >
-              <ThumbsDown className="w-4 h-4 text-red-500" />
-              DOWNVOTE
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => handleVote('like')}
+                disabled={hasVoted !== null}
+                className={`relative z-10 flex items-center gap-2 px-4 py-2 border rounded-md font-mono text-sm transition-all duration-300 \${
+                  hasVoted === 'like' 
+                    ? 'bg-neon-purple/20 border-neon-purple text-white shadow-[0_0_15px_rgba(176,38,255,0.5)] scale-105' 
+                    : hasVoted === 'dislike'
+                    ? 'opacity-50 cursor-not-allowed border-white/10 text-white/40'
+                    : 'hover:bg-neon-purple/10 hover:border-neon-purple/50 border-white/20 text-white/80'
+                }`}
+              >
+                <motion.div
+                  animate={hasVoted === 'like' ? { scale: [1, 1.5, 1], rotate: [0, -10, 10, 0] } : {}}
+                  transition={{ duration: 0.5 }}
+                >
+                  <ThumbsUp className={`w-4 h-4 \${hasVoted === 'like' ? 'text-neon-purple fill-neon-purple' : 'text-neon-purple'}`} />
+                </motion.div>
+                UPVOTE
+                {hasVoted === 'like' && (
+                  <span className="ml-2 px-2 py-0.5 bg-neon-purple text-white text-xs rounded-full">
+                    +{article.likes}
+                  </span>
+                )}
+              </button>
+              <AnimatePresence>
+                {hasVoted === 'like' && (
+                  <motion.div
+                    initial={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: 0, scale: 2 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="absolute inset-0 border-2 border-neon-purple rounded-md z-0"
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+
+            <div className="relative">
+              <button 
+                onClick={() => handleVote('dislike')}
+                disabled={hasVoted !== null}
+                className={`relative z-10 flex items-center gap-2 px-4 py-2 border rounded-md font-mono text-sm transition-all duration-300 \${
+                  hasVoted === 'dislike' 
+                    ? 'bg-red-500/20 border-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.5)] scale-105' 
+                    : hasVoted === 'like'
+                    ? 'opacity-50 cursor-not-allowed border-white/10 text-white/40'
+                    : 'hover:bg-red-500/10 hover:border-red-500/50 border-white/20 text-white/80'
+                }`}
+              >
+                <motion.div
+                  animate={hasVoted === 'dislike' ? { scale: [1, 1.5, 1], y: [0, 5, 0] } : {}}
+                  transition={{ duration: 0.5 }}
+                >
+                  <ThumbsDown className={`w-4 h-4 \${hasVoted === 'dislike' ? 'text-red-500 fill-red-500' : 'text-red-500'}`} />
+                </motion.div>
+                DOWNVOTE
+                {hasVoted === 'dislike' && (
+                  <span className="ml-2 px-2 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                    +{article.dislikes || 0}
+                  </span>
+                )}
+              </button>
+              <AnimatePresence>
+                {hasVoted === 'dislike' && (
+                  <motion.div
+                    initial={{ opacity: 1, scale: 1 }}
+                    animate={{ opacity: 0, scale: 2 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    className="absolute inset-0 border-2 border-red-500 rounded-md z-0"
+                  />
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </div>
 
