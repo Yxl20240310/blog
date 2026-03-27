@@ -15,6 +15,7 @@ export interface Article {
   likes: number;
   views: number;
   date: string;
+  status: 'draft' | 'published';
 }
 
 export const mockArticles: Article[] = [
@@ -53,6 +54,7 @@ function workLoopConcurrent() {
     likes: 342,
     views: 1205,
     date: "2026-03-20",
+    status: 'published',
   },
   {
     id: "2",
@@ -80,6 +82,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     likes: 512,
     views: 2301,
     date: "2026-03-22",
+    status: 'published',
   },
   {
     id: "3",
@@ -112,6 +115,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     likes: 289,
     views: 980,
     date: "2026-03-25",
+    status: 'published',
   },
   {
     id: "4",
@@ -141,6 +145,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     likes: 156,
     views: 890,
     date: "2026-03-26",
+    status: 'published',
   },
 ];
 

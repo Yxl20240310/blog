@@ -3,26 +3,29 @@
 
 ```mermaid
 graph TD
-    A["前端 (React + Tailwind CSS)"] -->|路由/状态管理| B["页面组件 (Home, ArticleDetail)"]
-    B --> C["Mock 数据 / 状态"]
+    A["前端 (React + Tailwind CSS)"] -->|路由/状态管理| B["页面组件 (Home, ArticleDetail, Admin)"]
+    B --> C["Mock 数据 / Zustand 状态"]
 ```
 
 ## 2. 技术说明
 - **前端框架**: React 18 + Vite
 - **样式方案**: Tailwind CSS 3 (用于快速实现科技感样式和响应式布局) + 自定义 CSS Variables (用于发光、毛玻璃等复杂动效)
-- **路由**: React Router DOM 6
+- **路由**: React Router DOM 6 (含 PrivateRoute 保护管理端)
 - **图标**: Lucide React
 - **动效**: Framer Motion (用于页面切换、悬浮发光、平滑过渡等科技感动画)
-- **状态管理**: React Hooks (useState, useEffect) 结合 Mock 数据模拟
+- **状态管理**: Zustand (结合 LocalStorage 模拟持久化登录状态与数据修改)
 
 ## 3. 路由定义
 | 路由 | 用途 |
 |------|------|
 | `/` | 首页：展示搜索框、标签筛选和高赞文章列表 |
 | `/article/:id` | 详情页：展示文章全文、评论区及快捷导航 |
+| `/login` | 管理员登录页 |
+| `/admin` | 管理后台主页（需鉴权）：展示文章列表、删除、发布操作 |
+| `/admin/editor/:id?` | 文章编辑器（需鉴权）：新建或编辑文章 |
 
 ## 4. 数据模型 (Mock)
-无需真实后端，前端采用 Mock 数据结构来模拟所有交互功能：
+无需真实后端，前端采用 Mock 数据结构结合 Zustand 状态来模拟所有交互功能：
 
 **文章 (Article)**
 ```typescript
@@ -35,6 +38,7 @@ interface Article {
   likes: number;
   views: number;
   date: string;
+  status: 'draft' | 'published'; // 新增状态字段
 }
 ```
 

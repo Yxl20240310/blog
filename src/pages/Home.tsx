@@ -17,9 +17,10 @@ export default function Home() {
     return Array.from(tags);
   }, [articles]);
 
-  // Filter and sort articles
+  // Filter and sort articles (only show published articles on home page)
   const filteredArticles = useMemo(() => {
     return articles
+      .filter(article => article.status === 'published')
       .filter(article => {
         const matchesSearch = article.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                               article.summary.toLowerCase().includes(searchQuery.toLowerCase());

@@ -2,8 +2,12 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { AnimatePresence } from 'framer-motion';
 import { Navbar } from './components/Navbar';
+import { PrivateRoute } from './components/PrivateRoute';
 import Home from "./pages/Home";
 import ArticleDetail from "./pages/ArticleDetail";
+import Login from "./pages/Login";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminEditor from "./pages/AdminEditor";
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -13,6 +17,14 @@ const AnimatedRoutes = () => {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<Home />} />
         <Route path="/article/:id" element={<ArticleDetail />} />
+        <Route path="/login" element={<Login />} />
+        
+        {/* Protected Admin Routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/editor" element={<AdminEditor />} />
+          <Route path="/admin/editor/:id" element={<AdminEditor />} />
+        </Route>
       </Routes>
     </AnimatePresence>
   );
