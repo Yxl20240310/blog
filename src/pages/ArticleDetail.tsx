@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { ArrowLeft, Calendar, Eye, Heart, MessageSquare, Send, ThumbsDown, ThumbsUp } from 'lucide-react';
+import { ArrowLeft, Calendar, Eye, Heart, MessageSquare, Send, ThumbsDown, ThumbsUp, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlogStore } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
@@ -64,6 +64,38 @@ export default function ArticleDetail() {
     setHasVoted(type);
   };
 
+  const handleDownload = () => {
+    if (!article) return;
+    
+    // 生成 Markdown 格式的内容
+    const markdownContent = `---
+title: \${article.title}
+date: \${article.date}
+tags: [\${article.tags.join(', ')}]
+likes: \${article.likes}
+views: \${article.views}
+---
+
+\${article.content}`;
+
+    // 创建 Blob 对象
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    
+    // 创建隐藏的 a 标签触发下载
+    const link = document.createElement('a');
+    link.href = url;
+    // 使用文章标题作为文件名，处理掉可能的非法字符
+    const safeFileName = article.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.download = `\${safeFileName}.md`;
+    document.body.appendChild(link);
+    link.click();
+    
+    // 清理
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <PageTransition>
       <div className="max-w-3xl mx-auto pb-20">
@@ -78,9 +110,18 @@ export default function ArticleDetail() {
 
         {/* Article Header */}
         <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight">
-            {article.title}
-          </h1>
+          <div className="flex items-start justify-between gap-4 mb-6">
+            <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight flex-1">
+              {article.title}
+            </h1>
+            <button
+              onClick={handleDownload}
+              className="flex items-center justify-center p-3 mt-2 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/20 hover:border-cyan-500 hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all group"
+              title="Download Markdown"
+            >
+              <Download className="w-5 h-5 group-hover:-translate-y-1 transition-transform" />
+            </button>
+          </div>
           <div className="flex flex-wrap items-center gap-6 text-sm font-mono text-white/40 border-y border-white/10 py-4">
             <span className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
