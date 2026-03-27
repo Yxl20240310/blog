@@ -39,6 +39,15 @@ interface User {
 }
 ```
 
+**文件夹 (Folder)**
+```typescript
+interface Folder {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+```
+
 **文章 (Article)**
 ```typescript
 interface Article {
@@ -54,6 +63,7 @@ interface Article {
   status: 'draft' | 'published'; // 新增状态字段
   visibility: 'public' | 'private' | 'restricted'; // 可见度配置
   allowedUsers?: string[]; // 当 visibility 为 restricted 时，允许访问的用户 ID 列表
+  folderId?: string | null; // 归属文件夹 ID
 }
 ```
 

@@ -6,6 +6,12 @@ export interface Comment {
   date: string;
 }
 
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -19,7 +25,14 @@ export interface Article {
   status: 'draft' | 'published';
   visibility: 'public' | 'private' | 'restricted';
   allowedUsers?: string[];
+  folderId?: string | null;
 }
+
+export const mockFolders: Folder[] = [
+  { id: 'f1', name: 'React 生态', createdAt: '2026-03-20T10:00:00Z' },
+  { id: 'f2', name: 'Rust 与工程化', createdAt: '2026-03-22T08:00:00Z' },
+  { id: 'f3', name: '设计与体验', createdAt: '2026-03-25T14:00:00Z' },
+];
 
 export const mockArticles: Article[] = [
   {
@@ -60,6 +73,7 @@ function workLoopConcurrent() {
     date: "2026-03-20",
     status: 'published',
     visibility: 'public',
+    folderId: 'f1',
   },
   {
     id: "2",
@@ -90,6 +104,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     date: "2026-03-22",
     status: 'published',
     visibility: 'public',
+    folderId: 'f2',
   },
   {
     id: "3",
@@ -125,6 +140,7 @@ Rust 的所有权模型在编译期就消除了数据竞争，这使得开发者
     date: "2026-03-25",
     status: 'published',
     visibility: 'public',
+    folderId: 'f3',
   },
   {
     id: "4",

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { mockArticles, mockComments, Article, Comment } from './mockData';
+import { mockArticles, mockComments, mockFolders, Article, Comment, Folder } from './mockData';
 
 export interface User {
   id: string;
@@ -9,9 +9,12 @@ export interface User {
   lastLogin?: string;
 }
 
+export { type Folder };
+
 interface BlogState {
   articles: Article[];
   comments: Comment[];
+  folders: Folder[];
   searchQuery: string;
   selectedTag: string | null;
   isAdmin: boolean;
@@ -32,6 +35,11 @@ interface BlogState {
   deleteArticle: (id: string) => void;
   resetUserPassword: (userId: string, newPassword: string) => void;
   
+  // Folder Actions
+  addFolder: (name: string) => void;
+  updateFolder: (id: string, name: string) => void;
+  deleteFolder: (id: string) => void;
+  
   // Interaction Actions
   voteArticle: (id: string, type: 'like' | 'dislike') => void;
 }
@@ -42,6 +50,11 @@ const getInitialArticles = () => {
   return stored ? JSON.parse(stored) : mockArticles;
 };
 
+const getInitialFolders = () => {
+  const stored = localStorage.getItem('blog_folders');
+  return stored ? JSON.parse(stored) : mockFolders;
+};
+
 const getInitialUser = (): User | null => {
   const stored = localStorage.getItem('blog_current_user');
   return stored ? JSON.parse(stored) : null;
@@ -50,6 +63,7 @@ const getInitialUser = (): User | null => {
 export const useBlogStore = create<BlogState>((set) => ({
   articles: getInitialArticles(),
   comments: mockComments,
+  folders: getInitialFolders(),
   searchQuery: '',
   selectedTag: null,
   currentUser: getInitialUser(),
@@ -134,6 +148,32 @@ export const useBlogStore = create<BlogState>((set) => ({
       localStorage.setItem('blog_users', JSON.stringify(users));
     }
   },
+
+  addFolder: (name) => set((state) => {
+    const newFolder: Folder = {
+      id: `f\${Date.now()}`,
+      name,
+      createdAt: new Date().toISOString(),
+    };
+    const newFolders = [...state.folders, newFolder];
+    localStorage.setItem('blog_folders', JSON.stringify(newFolders));
+    return { folders: newFolders };
+  }),
+
+  updateFolder: (id, name) => set((state) => {
+    const newFolders = state.folders.map(f => f.id === id ? { ...f, name } : f);
+    localStorage.setItem('blog_folders', JSON.stringify(newFolders));
+    return { folders: newFolders };
+  }),
+
+  deleteFolder: (id) => set((state) => {
+    const newFolders = state.folders.filter(f => f.id !== id);
+    localStorage.setItem('blog_folders', JSON.stringify(newFolders));
+    // Optional: Update articles that belong to this folder
+    const newArticles = state.articles.map(a => a.folderId === id ? { ...a, folderId: null } : a);
+    localStorage.setItem('blog_articles', JSON.stringify(newArticles));
+    return { folders: newFolders, articles: newArticles };
+  }),
 
   voteArticle: (id, type) => set((state) => {
     const newArticles = state.articles.map((article) => {

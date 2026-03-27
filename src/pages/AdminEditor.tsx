@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, Globe, ArrowLeft, Terminal, Lock, Users, Eye } from 'lucide-react';
+import { Save, Globe, ArrowLeft, Terminal, Lock, Users, Eye, Folder as FolderIcon } from 'lucide-react';
 import { useBlogStore, User } from '../store/useBlogStore';
 import { GlassCard } from '../components/GlassCard';
 import { Button } from '../components/Button';
@@ -9,7 +9,7 @@ import { PageTransition } from '../components/PageTransition';
 export default function AdminEditor() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { articles, addArticle, updateArticle } = useBlogStore();
+  const { articles, folders, addArticle, updateArticle } = useBlogStore();
   
   const isEditing = Boolean(id);
   const existingArticle = isEditing ? articles.find(a => a.id === id) : null;
@@ -20,6 +20,7 @@ export default function AdminEditor() {
   const [tagsInput, setTagsInput] = useState('');
   const [visibility, setVisibility] = useState<'public' | 'private' | 'restricted'>('public');
   const [allowedUsers, setAllowedUsers] = useState<string[]>([]);
+  const [folderId, setFolderId] = useState<string>('');
 
   // 获取所有注册用户用于选择
   const allUsers: User[] = JSON.parse(localStorage.getItem('blog_users') || '[]');
@@ -33,6 +34,7 @@ export default function AdminEditor() {
       setTagsInput(existingArticle.tags.join(', '));
       setVisibility(existingArticle.visibility || 'public');
       setAllowedUsers(existingArticle.allowedUsers || []);
+      setFolderId(existingArticle.folderId || '');
     } else if (isEditing && !existingArticle) {
       navigate('/admin'); // 找不到文章返回后台
     }
@@ -53,6 +55,7 @@ export default function AdminEditor() {
       status,
       visibility,
       allowedUsers: visibility === 'restricted' ? allowedUsers : undefined,
+      folderId: folderId || null,
     };
 
     if (isEditing && id) {
@@ -141,6 +144,25 @@ export default function AdminEditor() {
                   placeholder="React, CSS, Web3..."
                   className="w-full bg-black/50 border border-white/10 rounded-md p-3 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-colors"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-mono text-cyan-500 mb-2">DIRECTORY</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FolderIcon className="w-4 h-4 text-white/40" />
+                  </div>
+                  <select
+                    value={folderId}
+                    onChange={(e) => setFolderId(e.target.value)}
+                    className="w-full bg-black/50 border border-white/10 rounded-md py-3 pl-10 pr-4 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-colors appearance-none"
+                  >
+                    <option value="">-- Root (No Folder) --</option>
+                    {folders.map(folder => (
+                      <option key={folder.id} value={folder.id}>{folder.name}</option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div>
