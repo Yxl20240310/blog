@@ -32,6 +32,12 @@
   .text-glow {
     text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
   }
+  .text-glow-purple {
+    text-shadow: 0 0 10px rgba(176, 38, 255, 0.5);
+  }
+  .text-glow-orange {
+    text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+  }
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 6px;

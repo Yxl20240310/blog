@@ -4,6 +4,7 @@ import { ArrowLeft, Heart, ThumbsDown, Terminal, User, Clock, Send } from 'lucid
 import { motion } from 'framer-motion';
 import { getArticleById, getCommentsByArticleId, addComment, likeArticle, dislikeArticle, Article, Comment } from '@/lib/mockData';
 import clsx from 'clsx';
+import ReactionButton from '@/components/ReactionButton';
 
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
@@ -109,34 +110,22 @@ export default function ArticleDetail() {
       </article>
 
       {/* Interaction Bar */}
-      <div className="flex justify-center gap-6 pt-8 border-t border-white/10">
-        <button 
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-8 pt-12 border-t border-white/10">
+        <ReactionButton 
+          type="like"
+          count={article.likes}
+          isActive={isLiked}
+          isDisabled={isLiked || isDisliked}
           onClick={handleLike}
-          disabled={isLiked || isDisliked}
-          className={clsx(
-            "flex items-center gap-3 px-8 py-4 rounded-full font-mono text-lg transition-all duration-300",
-            isLiked 
-              ? "bg-neon-purple/20 text-neon-purple border border-neon-purple shadow-glow-purple cursor-not-allowed"
-              : (isDisliked ? "opacity-50 cursor-not-allowed glass-panel text-gray-500" : "glass-panel text-white hover:border-neon-purple hover:text-neon-purple hover:shadow-glow-purple")
-          )}
-        >
-          <Heart size={24} className={clsx(isLiked && "fill-neon-purple")} />
-          {isLiked ? 'LIKED' : 'LIKE_POST'} ({article.likes})
-        </button>
+        />
 
-        <button 
+        <ReactionButton 
+          type="dislike"
+          count={article.dislikes || 0}
+          isActive={isDisliked}
+          isDisabled={isLiked || isDisliked}
           onClick={handleDislike}
-          disabled={isLiked || isDisliked}
-          className={clsx(
-            "flex items-center gap-3 px-8 py-4 rounded-full font-mono text-lg transition-all duration-300",
-            isDisliked 
-              ? "bg-orange-500/20 text-orange-500 border border-orange-500 shadow-[0_0_10px_0px_rgba(249,115,22,0.3)] cursor-not-allowed"
-              : (isLiked ? "opacity-50 cursor-not-allowed glass-panel text-gray-500" : "glass-panel text-white hover:border-orange-500 hover:text-orange-500 hover:shadow-[0_0_10px_0px_rgba(249,115,22,0.3)]")
-          )}
-        >
-          <ThumbsDown size={24} className={clsx(isDisliked && "fill-orange-500")} />
-          {isDisliked ? 'DISLIKED' : 'DISLIKE'} ({article.dislikes || 0})
-        </button>
+        />
       </div>
 
       {/* Comments Section */}
