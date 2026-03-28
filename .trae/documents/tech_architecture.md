@@ -33,19 +33,30 @@ graph TD
 | 路由 | 目的 |
 |------|------|
 | `/` | 首页：展示顶部导航（含搜索）、标签筛选器、以及按点赞量排序的文章列表 |
-| `/article/:id` | 详情页：根据文章 ID 展示完整正文内容，并提供评论互动区 |
+| `/login` | 用户登录页：输入账号密码进行普通用户身份验证 |
+| `/register` | 用户注册页：创建新的普通用户账号 |
+| `/article/:id` | 详情页：展示完整正文内容，并提供评论互动区（受普通用户保护的路由） |
 | `/admin/login` | 管理员登录页：提供预设密码验证 |
-| `/admin` | 后台控制台：展示文章列表，提供编辑、删除、新建入口（需受保护路由） |
-| `/admin/editor/:id?` | 文章编辑器：用于创建新文章或编辑现有文章（需受保护路由） |
+| `/admin` | 后台控制台：展示文章列表，提供编辑、删除、新建入口（受管理员保护的路由） |
+| `/admin/editor/:id?` | 文章编辑器：用于创建新文章或编辑现有文章（受管理员保护的路由） |
 
 ## 4. 数据模型 (前端模拟)
-应用将在首次加载时向 LocalStorage 注入预设的文章数据，并处理管理员身份验证状态。
+应用将在首次加载时向 LocalStorage 注入预设的文章数据，并处理管理员及普通用户的身份验证状态。
 
 ### 4.1 数据模型定义
 ```typescript
-// 管理员认证状态 (存于 Zustand 或 LocalStorage)
+// 认证状态 (存于 Zustand)
 interface AuthState {
-  isAuthenticated: boolean;
+  isAdminAuthenticated: boolean;
+  user: User | null;
+}
+
+// 用户模型
+interface User {
+  id: string;
+  username: string;
+  passwordHash: string; // 模拟简单加密或明文
+  createdAt: string;
 }
 
 // 文章模型

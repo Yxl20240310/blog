@@ -1,9 +1,15 @@
-import { Link } from 'react-router-dom';
-import { Search, Terminal, Shield } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Search, Terminal, Shield, User, LogOut } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 export default function Navbar() {
-  const { searchQuery, setSearchQuery } = useAppStore();
+  const { searchQuery, setSearchQuery, currentUser, userLogout } = useAppStore();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    userLogout();
+    navigate('/');
+  };
 
   return (
     <nav className="sticky top-0 z-50 glass-panel border-b border-white/10 px-6 py-4">
@@ -29,9 +35,29 @@ export default function Navbar() {
         </div>
 
         <div className="flex items-center gap-6">
-          <Link to="/" className="text-gray-300 hover:text-neon-cyan hover:text-glow transition-all font-mono text-sm uppercase">
-            Home
-          </Link>
+          {currentUser ? (
+            <div className="flex items-center gap-4">
+              <span className="text-neon-cyan font-mono text-sm flex items-center gap-2">
+                <User size={14} />
+                {currentUser.username}
+              </span>
+              <button 
+                onClick={handleLogout}
+                className="text-gray-400 hover:text-red-400 transition-colors"
+                title="Logout"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          ) : (
+            <Link to="/login" className="text-gray-300 hover:text-neon-cyan hover:text-glow transition-all font-mono text-sm uppercase flex items-center gap-2">
+              <User size={14} />
+              Login
+            </Link>
+          )}
+          
+          <div className="h-4 w-px bg-white/20 mx-2"></div>
+
           <Link to="/admin" className="text-gray-300 hover:text-neon-purple hover:text-glow transition-all font-mono text-sm uppercase flex items-center gap-2">
             <Shield size={14} />
             Admin

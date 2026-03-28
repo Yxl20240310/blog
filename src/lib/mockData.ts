@@ -16,6 +16,13 @@ export interface Comment {
   createdAt: string;
 }
 
+export interface User {
+  id: string;
+  username: string;
+  passwordHash: string;
+  createdAt: string;
+}
+
 const INITIAL_ARTICLES: Article[] = [
   {
     id: "1",
@@ -61,6 +68,9 @@ export const initMockData = () => {
   }
   if (!localStorage.getItem("blog_comments")) {
     localStorage.setItem("blog_comments", JSON.stringify([]));
+  }
+  if (!localStorage.getItem("blog_users")) {
+    localStorage.setItem("blog_users", JSON.stringify([]));
   }
 };
 
@@ -134,4 +144,39 @@ export const likeArticle = (id: string) => {
   const articles = getArticles();
   const updated = articles.map(a => a.id === id ? { ...a, likes: a.likes + 1 } : a);
   localStorage.setItem("blog_articles", JSON.stringify(updated));
+};
+
+// --- User Management ---
+
+export const getUsers = (): User[] => {
+  const data = localStorage.getItem("blog_users");
+  return data ? JSON.parse(data) : [];
+};
+
+export const registerUser = (username: string, passwordHash: string): { success: boolean; user?: User; error?: string } => {
+  const users = getUsers();
+  if (users.some(u => u.username === username)) {
+    return { success: false, error: "Username already exists" };
+  }
+  
+  const newUser: User = {
+    id: Math.random().toString(36).substring(2, 9),
+    username,
+    passwordHash, // In a real app, never store plain passwords or hash them on the client side only
+    createdAt: new Date().toISOString()
+  };
+  
+  users.push(newUser);
+  localStorage.setItem("blog_users", JSON.stringify(users));
+  return { success: true, user: newUser };
+};
+
+export const loginUser = (username: string, passwordHash: string): { success: boolean; user?: User; error?: string } => {
+  const users = getUsers();
+  const user = users.find(u => u.username === username && u.passwordHash === passwordHash);
+  
+  if (user) {
+    return { success: true, user };
+  }
+  return { success: false, error: "Invalid credentials" };
 };

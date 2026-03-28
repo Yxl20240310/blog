@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { User } from './mockData';
 
 interface AppState {
   searchQuery: string;
@@ -6,10 +7,20 @@ interface AppState {
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearFilters: () => void;
-  isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
+  
+  isAdminAuthenticated: boolean;
+  adminLogin: () => void;
+  adminLogout: () => void;
+  
+  currentUser: User | null;
+  userLogin: (user: User) => void;
+  userLogout: () => void;
 }
+
+const getStoredUser = (): User | null => {
+  const data = localStorage.getItem('current_user');
+  return data ? JSON.parse(data) : null;
+};
 
 export const useAppStore = create<AppState>((set) => ({
   searchQuery: '',
@@ -23,13 +34,24 @@ export const useAppStore = create<AppState>((set) => ({
   clearFilters: () => set({ searchQuery: '', selectedTags: [] }),
   
   // Admin Authentication
-  isAuthenticated: localStorage.getItem('admin_auth') === 'true',
-  login: () => {
+  isAdminAuthenticated: localStorage.getItem('admin_auth') === 'true',
+  adminLogin: () => {
     localStorage.setItem('admin_auth', 'true');
-    set({ isAuthenticated: true });
+    set({ isAdminAuthenticated: true });
   },
-  logout: () => {
+  adminLogout: () => {
     localStorage.removeItem('admin_auth');
-    set({ isAuthenticated: false });
+    set({ isAdminAuthenticated: false });
+  },
+  
+  // User Authentication
+  currentUser: getStoredUser(),
+  userLogin: (user) => {
+    localStorage.setItem('current_user', JSON.stringify(user));
+    set({ currentUser: user });
+  },
+  userLogout: () => {
+    localStorage.removeItem('current_user');
+    set({ currentUser: null });
   }
 }));

@@ -2,15 +2,23 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import Layout from "@/components/Layout";
 import Home from "@/pages/Home";
 import ArticleDetail from "@/pages/ArticleDetail";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
 import AdminLogin from "@/pages/admin/Login";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import ArticleEditor from "@/pages/admin/Editor";
 import { useAppStore } from "@/lib/store";
 
-// Protected Route Component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const isAuthenticated = useAppStore(state => state.isAuthenticated);
-  return isAuthenticated ? <>{children}</> : <Navigate to="/admin/login" />;
+// Protected Route Component for Admin
+const AdminProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const isAdminAuthenticated = useAppStore(state => state.isAdminAuthenticated);
+  return isAdminAuthenticated ? <>{children}</> : <Navigate to="/admin/login" />;
+};
+
+// Protected Route Component for User
+const UserProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const currentUser = useAppStore(state => state.currentUser);
+  return currentUser ? <>{children}</> : <Navigate to="/login" />;
 };
 
 export default function App() {
@@ -20,32 +28,43 @@ export default function App() {
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
-          <Route path="/article/:id" element={<ArticleDetail />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* User Protected Routes */}
+          <Route 
+            path="/article/:id" 
+            element={
+              <UserProtectedRoute>
+                <ArticleDetail />
+              </UserProtectedRoute>
+            } 
+          />
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route 
             path="/admin" 
             element={
-              <ProtectedRoute>
+              <AdminProtectedRoute>
                 <AdminDashboard />
-              </ProtectedRoute>
+              </AdminProtectedRoute>
             } 
           />
           <Route 
             path="/admin/editor" 
             element={
-              <ProtectedRoute>
+              <AdminProtectedRoute>
                 <ArticleEditor />
-              </ProtectedRoute>
+              </AdminProtectedRoute>
             } 
           />
           <Route 
             path="/admin/editor/:id" 
             element={
-              <ProtectedRoute>
+              <AdminProtectedRoute>
                 <ArticleEditor />
-              </ProtectedRoute>
+              </AdminProtectedRoute>
             } 
           />
 
