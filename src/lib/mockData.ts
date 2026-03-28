@@ -21,6 +21,7 @@ export interface User {
   username: string;
   passwordHash: string;
   createdAt: string;
+  lastLoginTime?: string;
 }
 
 const INITIAL_ARTICLES: Article[] = [
@@ -173,10 +174,26 @@ export const registerUser = (username: string, passwordHash: string): { success:
 
 export const loginUser = (username: string, passwordHash: string): { success: boolean; user?: User; error?: string } => {
   const users = getUsers();
-  const user = users.find(u => u.username === username && u.passwordHash === passwordHash);
+  const userIndex = users.findIndex(u => u.username === username && u.passwordHash === passwordHash);
   
-  if (user) {
-    return { success: true, user };
+  if (userIndex !== -1) {
+    // Update last login time
+    users[userIndex].lastLoginTime = new Date().toISOString();
+    localStorage.setItem("blog_users", JSON.stringify(users));
+    
+    return { success: true, user: users[userIndex] };
   }
   return { success: false, error: "Invalid credentials" };
+};
+
+export const resetUserPassword = (userId: string, newPasswordHash: string): boolean => {
+  const users = getUsers();
+  const userIndex = users.findIndex(u => u.id === userId);
+  
+  if (userIndex !== -1) {
+    users[userIndex].passwordHash = newPasswordHash;
+    localStorage.setItem("blog_users", JSON.stringify(users));
+    return true;
+  }
+  return false;
 };

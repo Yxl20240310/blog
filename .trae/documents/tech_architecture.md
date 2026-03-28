@@ -37,7 +37,7 @@ graph TD
 | `/register` | 用户注册页：创建新的普通用户账号 |
 | `/article/:id` | 详情页：展示完整正文内容，并提供评论互动区（受普通用户保护的路由） |
 | `/admin/login` | 管理员登录页：提供预设密码验证 |
-| `/admin` | 后台控制台：展示文章列表，提供编辑、删除、新建入口（受管理员保护的路由） |
+| `/admin` | 后台控制台：展示文章列表及用户管理列表，提供编辑、删除、新建文章入口及重置密码入口（受管理员保护的路由） |
 | `/admin/editor/:id?` | 文章编辑器：用于创建新文章或编辑现有文章（受管理员保护的路由） |
 
 ## 4. 数据模型 (前端模拟)
@@ -57,6 +57,7 @@ interface User {
   username: string;
   passwordHash: string; // 模拟简单加密或明文
   createdAt: string;
+  lastLoginTime?: string; // 最近一次登录时间
 }
 
 // 文章模型
