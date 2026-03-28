@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Plus, Edit2, Trash2, Database, LogOut, Users, FileText, KeyRound } from 'lucide-react';
+import { Plus, Edit2, Trash2, Database, LogOut, Users, FileText, KeyRound, Globe, Lock, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getArticles, deleteArticle, Article, getUsers, User, resetUserPassword } from '@/lib/mockData';
+import { getArticles, deleteArticle, updateArticle, Article, getUsers, User, resetUserPassword, ArticleVisibility } from '@/lib/mockData';
 import { useAppStore } from '@/lib/store';
 import clsx from 'clsx';
 
@@ -49,6 +49,36 @@ export default function AdminDashboard() {
       } else {
         alert("Failed to reset password.");
       }
+    }
+  };
+
+  const handleVisibilityToggle = (id: string, currentVisibility: ArticleVisibility | undefined) => {
+    const nextVisibility: Record<string, ArticleVisibility> = {
+      'public': 'restricted',
+      'restricted': 'private',
+      'private': 'public'
+    };
+    
+    const newVisibility = nextVisibility[currentVisibility || 'public'];
+    updateArticle(id, { visibility: newVisibility });
+    loadData();
+  };
+
+  const getVisibilityIcon = (visibility?: ArticleVisibility) => {
+    switch(visibility) {
+      case 'private': return <Lock size={14} className="text-red-400" />;
+      case 'restricted': return <ShieldAlert size={14} className="text-orange-400" />;
+      case 'public':
+      default: return <Globe size={14} className="text-neon-cyan" />;
+    }
+  };
+
+  const getVisibilityLabel = (visibility?: ArticleVisibility) => {
+    switch(visibility) {
+      case 'private': return 'PRIVATE';
+      case 'restricted': return 'RESTRICTED';
+      case 'public':
+      default: return 'PUBLIC';
     }
   };
 
@@ -130,6 +160,7 @@ export default function AdminDashboard() {
                 <thead>
                   <tr className="border-b border-white/10 bg-black/40">
                     <th className="px-6 py-4 font-mono text-neon-cyan text-sm">TITLE</th>
+                    <th className="px-6 py-4 font-mono text-neon-cyan text-sm">VISIBILITY</th>
                     <th className="px-6 py-4 font-mono text-neon-cyan text-sm">DATE</th>
                     <th className="px-6 py-4 font-mono text-neon-cyan text-sm">LIKES</th>
                     <th className="px-6 py-4 font-mono text-neon-cyan text-sm text-right">ACTIONS</th>
@@ -153,6 +184,16 @@ export default function AdminDashboard() {
                             <span key={tag} className="text-xs text-gray-500 font-mono">#{tag}</span>
                           ))}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <button 
+                          onClick={() => handleVisibilityToggle(article.id, article.visibility)}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded border border-white/10 hover:bg-white/5 transition-colors text-xs font-mono text-gray-400 group-hover:border-white/20"
+                          title="Click to toggle visibility"
+                        >
+                          {getVisibilityIcon(article.visibility)}
+                          {getVisibilityLabel(article.visibility)}
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-gray-400 font-mono text-sm">
                         {new Date(article.createdAt).toLocaleDateString()}

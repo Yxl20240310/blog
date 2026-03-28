@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Heart, Calendar, Hash } from 'lucide-react';
+import { ChevronRight, Heart, Calendar, Hash, Lock, ShieldAlert } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getArticles, Article } from '@/lib/mockData';
 import { useAppStore } from '@/lib/store';
@@ -8,30 +8,38 @@ import clsx from 'clsx';
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
-  const { searchQuery, selectedTags, toggleTag } = useAppStore();
+  const { searchQuery, selectedTags, toggleTag, currentUser, isAdminAuthenticated } = useAppStore();
 
   useEffect(() => {
     // Load articles on mount
     setArticles(getArticles());
   }, []);
 
-  // Extract all unique tags
+  // Extract all unique tags (respecting visibility)
   const allTags = useMemo(() => {
     const tags = new Set<string>();
-    articles.forEach(a => a.tags.forEach(t => tags.add(t)));
+    articles.forEach(a => {
+      // Only include tags from articles the user can see
+      if (a.visibility === 'private' && !isAdminAuthenticated) return;
+      if (a.visibility === 'restricted' && !currentUser && !isAdminAuthenticated) return;
+      a.tags.forEach(t => tags.add(t));
+    });
     return Array.from(tags);
-  }, [articles]);
+  }, [articles, currentUser, isAdminAuthenticated]);
 
   // Filter and sort articles
   const filteredArticles = useMemo(() => {
     return articles
       .filter(article => {
-        // Filter out articles where dislikes are more than 10% of likes
-        // For testing, if an article has 0 likes but has dislikes, it should also be filtered out if we strictly follow > 10% logic.
-        // We'll calculate: dislikes > (likes * 0.1)
+        // 1. Visibility Check
+        if (article.visibility === 'private' && !isAdminAuthenticated) return false;
+        if (article.visibility === 'restricted' && !currentUser && !isAdminAuthenticated) return false;
+
+        // 2. Dislikes Filter (> 10% of likes)
         const hasTooManyDislikes = article.dislikes > (article.likes * 0.1);
         if (hasTooManyDislikes) return false;
 
+        // 3. Search & Tag Filters
         const matchesSearch = 
           article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           article.summary.toLowerCase().includes(searchQuery.toLowerCase());
@@ -43,7 +51,7 @@ export default function Home() {
         return matchesSearch && matchesTags;
       })
       .sort((a, b) => b.likes - a.likes); // Sort by likes descending
-  }, [articles, searchQuery, selectedTags]);
+  }, [articles, searchQuery, selectedTags, currentUser, isAdminAuthenticated]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -135,9 +143,21 @@ export default function Home() {
                     
                     <div className="flex justify-between items-start gap-4">
                       <div className="space-y-3">
-                        <h3 className="text-2xl font-bold font-mono text-white group-hover:text-neon-cyan transition-colors">
-                          {article.title}
-                        </h3>
+                        <div className="flex items-center gap-3">
+                          <h3 className="text-2xl font-bold font-mono text-white group-hover:text-neon-cyan transition-colors">
+                            {article.title}
+                          </h3>
+                          {article.visibility === 'private' && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono border border-red-500/30 text-red-400 bg-red-500/10 flex items-center gap-1">
+                              <Lock size={10} /> PRIVATE
+                            </span>
+                          )}
+                          {article.visibility === 'restricted' && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono border border-orange-500/30 text-orange-400 bg-orange-500/10 flex items-center gap-1">
+                              <ShieldAlert size={10} /> RESTRICTED
+                            </span>
+                          )}
+                        </div>
                         <p className="text-gray-400 leading-relaxed">
                           {article.summary}
                         </p>

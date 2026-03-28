@@ -1,3 +1,5 @@
+export type ArticleVisibility = 'public' | 'restricted' | 'private';
+
 export interface Article {
   id: string;
   title: string;
@@ -7,6 +9,7 @@ export interface Article {
   dislikes: number;
   tags: string[];
   createdAt: string;
+  visibility?: ArticleVisibility; // Optional for backward compatibility with existing data
 }
 
 export interface Comment {
@@ -34,7 +37,8 @@ const INITIAL_ARTICLES: Article[] = [
     likes: 1024,
     dislikes: 12,
     tags: ["量子计算", "未来科技", "密码学"],
-    createdAt: "2026-03-25T10:00:00Z"
+    createdAt: "2026-03-25T10:00:00Z",
+    visibility: "public"
   },
   {
     id: "2",
@@ -44,7 +48,8 @@ const INITIAL_ARTICLES: Article[] = [
     likes: 856,
     dislikes: 45,
     tags: ["脑机接口", "AI", "赛博朋克"],
-    createdAt: "2026-03-20T14:30:00Z"
+    createdAt: "2026-03-20T14:30:00Z",
+    visibility: "public"
   },
   {
     id: "3",
@@ -54,7 +59,8 @@ const INITIAL_ARTICLES: Article[] = [
     likes: 2048,
     dislikes: 5,
     tags: ["Web开发", "React", "UI/UX", "Tailwind"],
-    createdAt: "2026-03-28T09:15:00Z"
+    createdAt: "2026-03-28T09:15:00Z",
+    visibility: "restricted" // Restricted to logged-in users only
   },
   {
     id: "4",
@@ -64,7 +70,8 @@ const INITIAL_ARTICLES: Article[] = [
     likes: 512,
     dislikes: 120, // dislikes > 10% of likes to test the filter
     tags: ["Web3", "区块链", "隐私保护"],
-    createdAt: "2026-03-15T08:00:00Z"
+    createdAt: "2026-03-15T08:00:00Z",
+    visibility: "private" // Private, only admin can see
   }
 ];
 
@@ -115,7 +122,8 @@ export const addArticle = (article: Omit<Article, "id" | "likes" | "dislikes" | 
     id: Math.random().toString(36).substring(2, 9),
     likes: 0,
     dislikes: 0,
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    visibility: article.visibility || 'public'
   };
   articles.push(newArticle);
   localStorage.setItem("blog_articles", JSON.stringify(articles));

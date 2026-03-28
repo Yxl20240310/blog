@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Terminal, Type, Hash, FileText, AlignLeft } from 'lucide-react';
+import { Save, ArrowLeft, Terminal, Type, Hash, FileText, AlignLeft, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getArticleById, addArticle, updateArticle } from '@/lib/mockData';
+import { getArticleById, addArticle, updateArticle, ArticleVisibility } from '@/lib/mockData';
 import { useAppStore } from '@/lib/store';
 
 export default function ArticleEditor() {
@@ -14,6 +14,7 @@ export default function ArticleEditor() {
   const [summary, setSummary] = useState('');
   const [content, setContent] = useState('');
   const [tagsInput, setTagsInput] = useState('');
+  const [visibility, setVisibility] = useState<ArticleVisibility>('public');
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -29,6 +30,7 @@ export default function ArticleEditor() {
         setSummary(article.summary);
         setContent(article.content);
         setTagsInput(article.tags.join(', '));
+        setVisibility(article.visibility || 'public');
       } else {
         navigate('/admin');
       }
@@ -50,7 +52,8 @@ export default function ArticleEditor() {
       title: title.trim(),
       summary: summary.trim(),
       content: content.trim(),
-      tags
+      tags,
+      visibility
     };
 
     setTimeout(() => {
@@ -128,19 +131,39 @@ export default function ArticleEditor() {
             />
           </div>
 
-          {/* Tags */}
-          <div className="space-y-2">
-            <label className="text-sm font-mono text-neon-cyan flex items-center gap-2">
-              <Hash size={16} />
-              TAGS (Comma separated)
-            </label>
-            <input
-              type="text"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
-              className="block w-full px-4 py-3 border border-white/10 rounded-md bg-black/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono text-sm"
-              placeholder="e.g. Technology, Web3, AI"
-            />
+          {/* Tags and Visibility in a row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Tags */}
+            <div className="space-y-2">
+              <label className="text-sm font-mono text-neon-cyan flex items-center gap-2">
+                <Hash size={16} />
+                TAGS (Comma separated)
+              </label>
+              <input
+                type="text"
+                value={tagsInput}
+                onChange={(e) => setTagsInput(e.target.value)}
+                className="block w-full px-4 py-3 border border-white/10 rounded-md bg-black/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono text-sm"
+                placeholder="e.g. Technology, Web3, AI"
+              />
+            </div>
+
+            {/* Visibility */}
+            <div className="space-y-2">
+              <label className="text-sm font-mono text-neon-cyan flex items-center gap-2">
+                <Eye size={16} />
+                VISIBILITY
+              </label>
+              <select
+                value={visibility}
+                onChange={(e) => setVisibility(e.target.value as ArticleVisibility)}
+                className="block w-full px-4 py-3 border border-white/10 rounded-md bg-black/50 text-gray-300 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono text-sm"
+              >
+                <option value="public">PUBLIC (Everyone)</option>
+                <option value="restricted">RESTRICTED (Logged-in only)</option>
+                <option value="private">PRIVATE (Admin only)</option>
+              </select>
+            </div>
           </div>
 
           {/* Content */}
