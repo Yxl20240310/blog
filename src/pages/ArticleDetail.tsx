@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, Terminal, User, Clock, Send } from 'lucide-react';
+import { ArrowLeft, Heart, ThumbsDown, Terminal, User, Clock, Send } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getArticleById, getCommentsByArticleId, addComment, likeArticle, Article, Comment } from '@/lib/mockData';
+import { getArticleById, getCommentsByArticleId, addComment, likeArticle, dislikeArticle, Article, Comment } from '@/lib/mockData';
 import clsx from 'clsx';
 
 export default function ArticleDetail() {
@@ -15,6 +15,7 @@ export default function ArticleDetail() {
   const [newComment, setNewComment] = useState('');
   const [username, setUsername] = useState('');
   const [isLiked, setIsLiked] = useState(false);
+  const [isDisliked, setIsDisliked] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -32,10 +33,17 @@ export default function ArticleDetail() {
   if (!article) return null;
 
   const handleLike = () => {
-    if (isLiked || !id) return;
+    if (isLiked || isDisliked || !id) return;
     likeArticle(id);
     setArticle(prev => prev ? { ...prev, likes: prev.likes + 1 } : null);
     setIsLiked(true);
+  };
+
+  const handleDislike = () => {
+    if (isLiked || isDisliked || !id) return;
+    dislikeArticle(id);
+    setArticle(prev => prev ? { ...prev, dislikes: (prev.dislikes || 0) + 1 } : null);
+    setIsDisliked(true);
   };
 
   const handleCommentSubmit = (e: React.FormEvent) => {
@@ -101,19 +109,33 @@ export default function ArticleDetail() {
       </article>
 
       {/* Interaction Bar */}
-      <div className="flex justify-center pt-8">
+      <div className="flex justify-center gap-6 pt-8 border-t border-white/10">
         <button 
           onClick={handleLike}
-          disabled={isLiked}
+          disabled={isLiked || isDisliked}
           className={clsx(
             "flex items-center gap-3 px-8 py-4 rounded-full font-mono text-lg transition-all duration-300",
             isLiked 
               ? "bg-neon-purple/20 text-neon-purple border border-neon-purple shadow-glow-purple cursor-not-allowed"
-              : "glass-panel text-white hover:border-neon-purple hover:text-neon-purple hover:shadow-glow-purple"
+              : (isDisliked ? "opacity-50 cursor-not-allowed glass-panel text-gray-500" : "glass-panel text-white hover:border-neon-purple hover:text-neon-purple hover:shadow-glow-purple")
           )}
         >
           <Heart size={24} className={clsx(isLiked && "fill-neon-purple")} />
-          {isLiked ? 'ACKNOWLEDGED' : 'LIKE_THIS_POST'}
+          {isLiked ? 'LIKED' : 'LIKE_POST'} ({article.likes})
+        </button>
+
+        <button 
+          onClick={handleDislike}
+          disabled={isLiked || isDisliked}
+          className={clsx(
+            "flex items-center gap-3 px-8 py-4 rounded-full font-mono text-lg transition-all duration-300",
+            isDisliked 
+              ? "bg-orange-500/20 text-orange-500 border border-orange-500 shadow-[0_0_10px_0px_rgba(249,115,22,0.3)] cursor-not-allowed"
+              : (isLiked ? "opacity-50 cursor-not-allowed glass-panel text-gray-500" : "glass-panel text-white hover:border-orange-500 hover:text-orange-500 hover:shadow-[0_0_10px_0px_rgba(249,115,22,0.3)]")
+          )}
+        >
+          <ThumbsDown size={24} className={clsx(isDisliked && "fill-orange-500")} />
+          {isDisliked ? 'DISLIKED' : 'DISLIKE'} ({article.dislikes || 0})
         </button>
       </div>
 

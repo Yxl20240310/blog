@@ -26,6 +26,12 @@ export default function Home() {
   const filteredArticles = useMemo(() => {
     return articles
       .filter(article => {
+        // Filter out articles where dislikes are more than 10% of likes
+        // For testing, if an article has 0 likes but has dislikes, it should also be filtered out if we strictly follow > 10% logic.
+        // We'll calculate: dislikes > (likes * 0.1)
+        const hasTooManyDislikes = article.dislikes > (article.likes * 0.1);
+        if (hasTooManyDislikes) return false;
+
         const matchesSearch = 
           article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
           article.summary.toLowerCase().includes(searchQuery.toLowerCase());
