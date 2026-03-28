@@ -1,11 +1,12 @@
 import React from 'react';
-import { Navigate, Outlet, Link, useNavigate } from 'react-router-dom';
+import { Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Terminal, LogOut, LayoutDashboard, FileText } from 'lucide-react';
+import { Terminal, LogOut, LayoutDashboard, FileText, Users } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
   const { isAdmin, logout } = useStore();
   const navigate = useNavigate();
+  const location = useLocation();
 
   if (!isAdmin) {
     return <Navigate to="/admin/login" replace />;
@@ -14,6 +15,12 @@ const AdminLayout: React.FC = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  const isActive = (path: string) => {
+    if (path === '/admin' && location.pathname === '/admin') return true;
+    if (path !== '/admin' && location.pathname.startsWith(path)) return true;
+    return false;
   };
 
   return (
@@ -31,15 +38,33 @@ const AdminLayout: React.FC = () => {
         <nav className="flex-1 p-4 space-y-2">
           <Link 
             to="/admin" 
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-white/5 hover:text-neon-purple transition-all font-mono"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-mono ${
+              isActive('/admin') 
+                ? 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]' 
+                : 'text-slate-400 hover:bg-white/5 hover:text-neon-purple'
+            }`}
           >
             <LayoutDashboard size={18} /> 仪表盘 / Dashboard
           </Link>
           <Link 
             to="/admin/editor" 
-            className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-white/5 hover:text-neon-green transition-all font-mono"
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-mono ${
+              isActive('/admin/editor') 
+                ? 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]' 
+                : 'text-slate-400 hover:bg-white/5 hover:text-neon-green'
+            }`}
           >
             <FileText size={18} /> 新建文章 / New Post
+          </Link>
+          <Link 
+            to="/admin/users" 
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-mono ${
+              isActive('/admin/users') 
+                ? 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]' 
+                : 'text-slate-400 hover:bg-white/5 hover:text-neon-blue'
+            }`}
+          >
+            <Users size={18} /> 用户管理 / Users
           </Link>
         </nav>
         <div className="p-4 border-t border-white/10">

@@ -3,6 +3,7 @@ export interface User {
   username: string;
   password?: string; // Stored in local for mock
   createdAt: string;
+  lastLoginTime?: string;
 }
 
 export interface Article {

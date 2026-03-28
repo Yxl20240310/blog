@@ -7,6 +7,7 @@ import AdminLayout from './components/AdminLayout';
 import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import Editor from './pages/admin/Editor';
+import UserManagement from './pages/admin/UserManagement';
 import UserLogin from './pages/UserLogin';
 import UserRegister from './pages/UserRegister';
 import { useStore } from './store/useStore';
@@ -49,6 +50,7 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="editor" element={<Editor />} />
           <Route path="editor/:id" element={<Editor />} />
+          <Route path="users" element={<UserManagement />} />
         </Route>
       </Routes>
     </Router>

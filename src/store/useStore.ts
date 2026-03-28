@@ -9,6 +9,8 @@ interface StoreState {
   registerUser: (user: Omit<User, 'id' | 'createdAt'>) => boolean;
   userLogin: (username: string, password: string) => boolean;
   userLogout: () => void;
+  resetUserPassword: (userId: string) => void;
+  deleteUser: (userId: string) => void;
 
   // Comments
   comments: Comment[];
@@ -53,12 +55,30 @@ export const useStore = create<StoreState>()(
         const { users } = get();
         const user = users.find((u) => u.username === username && u.password === password);
         if (user) {
-          set({ currentUser: user });
+          const now = new Date().toISOString();
+          const updatedUser = { ...user, lastLoginTime: now };
+          
+          set((state) => ({ 
+            currentUser: updatedUser,
+            users: state.users.map(u => u.id === user.id ? updatedUser : u)
+          }));
           return true;
         }
         return false;
       },
       userLogout: () => set({ currentUser: null }),
+      resetUserPassword: (userId) => {
+        set((state) => ({
+          users: state.users.map(u => 
+            u.id === userId ? { ...u, password: 'password123' } : u
+          )
+        }));
+      },
+      deleteUser: (userId) => {
+        set((state) => ({
+          users: state.users.filter(u => u.id !== userId)
+        }));
+      },
 
       // Comments
       addComment: (comment) =>
