@@ -18,9 +18,11 @@ interface StoreState {
   
   // Articles
   articles: Article[];
-  addArticle: (article: Omit<Article, 'id' | 'likes' | 'date'>) => void;
+  addArticle: (article: Omit<Article, 'id' | 'likes' | 'dislikes' | 'date'>) => void;
   updateArticle: (id: string, article: Partial<Article>) => void;
   deleteArticle: (id: string) => void;
+  likeArticle: (id: string) => void;
+  dislikeArticle: (id: string) => void;
   
   // Admin Auth
   isAdmin: boolean;
@@ -93,8 +95,12 @@ export const useStore = create<StoreState>()(
           ],
         })),
 
-      // Initialize with mock data, ensure published flag exists
-      articles: initialArticles.map(a => ({ ...a, published: a.published ?? true })),
+      // Initialize with mock data, ensure published flag and dislikes exist
+      articles: initialArticles.map(a => ({ 
+        ...a, 
+        published: a.published ?? true,
+        dislikes: a.dislikes ?? 0 
+      })),
       
       addArticle: (articleData) =>
         set((state) => ({
@@ -103,6 +109,7 @@ export const useStore = create<StoreState>()(
               ...articleData,
               id: Math.random().toString(36).substring(7),
               likes: 0,
+              dislikes: 0,
               date: new Date().toISOString().split('T')[0],
             },
             ...state.articles,
@@ -121,6 +128,20 @@ export const useStore = create<StoreState>()(
           articles: state.articles.filter((article) => article.id !== id),
           // Optionally delete associated comments
           comments: state.comments.filter((comment) => comment.articleId !== id),
+        })),
+
+      likeArticle: (id) => 
+        set((state) => ({
+          articles: state.articles.map(a => 
+            a.id === id ? { ...a, likes: a.likes + 1 } : a
+          )
+        })),
+
+      dislikeArticle: (id) => 
+        set((state) => ({
+          articles: state.articles.map(a => 
+            a.id === id ? { ...a, dislikes: (a.dislikes || 0) + 1 } : a
+          )
         })),
 
       isAdmin: false,

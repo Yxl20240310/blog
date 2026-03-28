@@ -11,7 +11,20 @@ const Home: React.FC = () => {
   const selectedTag = searchParams.get('tag') || '';
   
   const storeArticles = useStore(state => state.articles);
-  const publishedArticles = useMemo(() => storeArticles.filter(a => a.published), [storeArticles]);
+  const publishedArticles = useMemo(() => {
+    return storeArticles.filter(a => {
+      // Must be published
+      if (!a.published) return false;
+      
+      // Filter out if dislikes > 10% of likes
+      // If likes is 0, we treat it as not exceeding the threshold (unless you want strict 0*0.1=0 check, but usually we need a minimum threshold)
+      const dislikes = a.dislikes || 0;
+      if (a.likes > 0 && dislikes > a.likes * 0.1) {
+        return false;
+      }
+      return true;
+    });
+  }, [storeArticles]);
   
   const tags = useMemo(() => {
     const allTags = new Set<string>();

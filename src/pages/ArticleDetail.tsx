@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageSquare, Send, User, Calendar, Flame } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, User, Calendar, Flame, ThumbsDown } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 const ArticleDetail: React.FC = () => {
@@ -10,9 +10,10 @@ const ArticleDetail: React.FC = () => {
   const storeArticles = useStore(state => state.articles);
   const article = storeArticles.find(a => a.id === id && a.published);
   
-  const { comments, addComment } = useStore();
+  const { comments, addComment, likeArticle, dislikeArticle } = useStore();
   const { currentUser } = useStore();
   const [newComment, setNewComment] = useState('');
+  const [hasVoted, setHasVoted] = useState(false);
 
   if (!article) {
     return (
@@ -38,6 +39,18 @@ const ArticleDetail: React.FC = () => {
     });
 
     setNewComment('');
+  };
+
+  const handleLike = () => {
+    if (hasVoted) return;
+    likeArticle(article.id);
+    setHasVoted(true);
+  };
+
+  const handleDislike = () => {
+    if (hasVoted) return;
+    dislikeArticle(article.id);
+    setHasVoted(true);
   };
 
   return (
@@ -105,6 +118,40 @@ const ArticleDetail: React.FC = () => {
             }
           })}
         </motion.article>
+
+        {/* Voting Section */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          className="mt-16 flex items-center justify-center gap-6"
+        >
+          <button
+            onClick={handleLike}
+            disabled={hasVoted}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-mono transition-all duration-300 ${
+              hasVoted 
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+                : 'bg-neon-green/10 text-neon-green border border-neon-green/30 hover:bg-neon-green/20 hover:shadow-neon-green'
+            }`}
+          >
+            <Flame size={20} />
+            <span>{article.likes}</span>
+          </button>
+          
+          <button
+            onClick={handleDislike}
+            disabled={hasVoted}
+            className={`flex items-center gap-2 px-6 py-3 rounded-full font-mono transition-all duration-300 ${
+              hasVoted 
+                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+                : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 hover:shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+            }`}
+          >
+            <ThumbsDown size={20} />
+            <span>{article.dislikes || 0}</span>
+          </button>
+        </motion.div>
 
         {/* Comments Section */}
         <motion.section 

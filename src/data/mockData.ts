@@ -12,6 +12,7 @@ export interface Article {
   excerpt: string;
   content: string;
   likes: number;
+  dislikes?: number;
   tags: string[];
   date: string;
   author: string;
