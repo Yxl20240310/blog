@@ -4,6 +4,7 @@ import Home from "@/pages/Home";
 import ArticleDetail from "@/pages/ArticleDetail";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import Profile from "@/pages/Profile";
 import AdminLogin from "@/pages/admin/Login";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import ArticleEditor from "@/pages/admin/Editor";
@@ -37,6 +38,14 @@ export default function App() {
             element={
               <UserProtectedRoute>
                 <ArticleDetail />
+              </UserProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <UserProtectedRoute>
+                <Profile />
               </UserProtectedRoute>
             } 
           />

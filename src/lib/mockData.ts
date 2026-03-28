@@ -1,4 +1,5 @@
 export type ArticleVisibility = 'public' | 'restricted' | 'private';
+export type ArticleStatus = 'published' | 'draft';
 
 export interface Category {
   id: string;
@@ -17,7 +18,9 @@ export interface Article {
   tags: string[];
   createdAt: string;
   visibility?: ArticleVisibility;
-  categoryId?: string; // Optional for backward compatibility
+  categoryId?: string;
+  authorId?: string; // ID of the user who created it
+  status?: ArticleStatus; // 'published' or 'draft'
 }
 
 export interface Comment {
@@ -200,7 +203,8 @@ export const addArticle = (article: Omit<Article, "id" | "likes" | "dislikes" | 
     likes: 0,
     dislikes: 0,
     createdAt: new Date().toISOString(),
-    visibility: article.visibility || 'public'
+    visibility: article.visibility || 'public',
+    status: article.status || 'published'
   };
   articles.push(newArticle);
   localStorage.setItem("blog_articles", JSON.stringify(articles));
@@ -290,6 +294,35 @@ export const resetUserPassword = (userId: string, newPasswordHash: string): bool
   if (userIndex !== -1) {
     users[userIndex].passwordHash = newPasswordHash;
     localStorage.setItem("blog_users", JSON.stringify(users));
+    return true;
+  }
+  return false;
+};
+
+export const deleteUserAccount = (userId: string): boolean => {
+  const users = getUsers();
+  const updatedUsers = users.filter(u => u.id !== userId);
+  
+  if (users.length !== updatedUsers.length) {
+    localStorage.setItem("blog_users", JSON.stringify(updatedUsers));
+    
+    // Cleanup: Remove all articles authored by this user
+    const articles = getArticles();
+    const articlesToDelete = articles.filter(a => a.authorId === userId);
+    
+    if (articlesToDelete.length > 0) {
+      const updatedArticles = articles.filter(a => a.authorId !== userId);
+      localStorage.setItem("blog_articles", JSON.stringify(updatedArticles));
+      
+      // Cleanup: Remove comments related to those deleted articles
+      const articleIdsToDelete = new Set(articlesToDelete.map(a => a.id));
+      const commentsData = localStorage.getItem("blog_comments");
+      if (commentsData) {
+        const comments: Comment[] = JSON.parse(commentsData);
+        const updatedComments = comments.filter(c => !articleIdsToDelete.has(c.articleId));
+        localStorage.setItem("blog_comments", JSON.stringify(updatedComments));
+      }
+    }
     return true;
   }
   return false;

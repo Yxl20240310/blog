@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Terminal, Shield, User, LogOut } from 'lucide-react';
+import { Search, Terminal, Shield, User, LogOut, Settings } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 export default function Navbar() {
@@ -37,10 +37,10 @@ export default function Navbar() {
         <div className="flex items-center gap-6">
           {currentUser ? (
             <div className="flex items-center gap-4">
-              <span className="text-neon-cyan font-mono text-sm flex items-center gap-2">
+              <Link to="/profile" className="text-neon-cyan hover:text-white transition-colors font-mono text-sm flex items-center gap-2" title="User Profile">
                 <User size={14} />
                 {currentUser.username}
-              </span>
+              </Link>
               <button 
                 onClick={handleLogout}
                 className="text-gray-400 hover:text-red-400 transition-colors"
