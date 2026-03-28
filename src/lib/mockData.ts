@@ -92,6 +92,44 @@ export const addComment = (comment: Omit<Comment, "id" | "createdAt">) => {
   return newComment;
 };
 
+export const addArticle = (article: Omit<Article, "id" | "likes" | "createdAt">) => {
+  const articles = getArticles();
+  const newArticle: Article = {
+    ...article,
+    id: Math.random().toString(36).substring(2, 9),
+    likes: 0,
+    createdAt: new Date().toISOString()
+  };
+  articles.push(newArticle);
+  localStorage.setItem("blog_articles", JSON.stringify(articles));
+  return newArticle;
+};
+
+export const updateArticle = (id: string, updates: Partial<Omit<Article, "id" | "likes" | "createdAt">>) => {
+  const articles = getArticles();
+  const updatedArticles = articles.map(a => 
+    a.id === id ? { ...a, ...updates } : a
+  );
+  localStorage.setItem("blog_articles", JSON.stringify(updatedArticles));
+};
+
+export const deleteArticle = (id: string) => {
+  const articles = getArticles();
+  const updatedArticles = articles.filter(a => a.id !== id);
+  localStorage.setItem("blog_articles", JSON.stringify(updatedArticles));
+  
+  // Clean up comments for this article
+  const comments = getCommentsByArticleId(id);
+  if (comments.length > 0) {
+      const allCommentsData = localStorage.getItem("blog_comments");
+      if (allCommentsData) {
+          const allComments: Comment[] = JSON.parse(allCommentsData);
+          const filteredComments = allComments.filter(c => c.articleId !== id);
+          localStorage.setItem("blog_comments", JSON.stringify(filteredComments));
+      }
+  }
+};
+
 export const likeArticle = (id: string) => {
   const articles = getArticles();
   const updated = articles.map(a => a.id === id ? { ...a, likes: a.likes + 1 } : a);

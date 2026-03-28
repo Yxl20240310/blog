@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Search, Terminal } from 'lucide-react';
+import { Search, Terminal, Shield } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 
 export default function Navbar() {
@@ -32,9 +32,10 @@ export default function Navbar() {
           <Link to="/" className="text-gray-300 hover:text-neon-cyan hover:text-glow transition-all font-mono text-sm uppercase">
             Home
           </Link>
-          <a href="#" className="text-gray-300 hover:text-neon-purple hover:text-glow transition-all font-mono text-sm uppercase">
-            About
-          </a>
+          <Link to="/admin" className="text-gray-300 hover:text-neon-purple hover:text-glow transition-all font-mono text-sm uppercase flex items-center gap-2">
+            <Shield size={14} />
+            Admin
+          </Link>
         </div>
       </div>
     </nav>

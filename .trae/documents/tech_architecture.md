@@ -34,12 +34,20 @@ graph TD
 |------|------|
 | `/` | 首页：展示顶部导航（含搜索）、标签筛选器、以及按点赞量排序的文章列表 |
 | `/article/:id` | 详情页：根据文章 ID 展示完整正文内容，并提供评论互动区 |
+| `/admin/login` | 管理员登录页：提供预设密码验证 |
+| `/admin` | 后台控制台：展示文章列表，提供编辑、删除、新建入口（需受保护路由） |
+| `/admin/editor/:id?` | 文章编辑器：用于创建新文章或编辑现有文章（需受保护路由） |
 
 ## 4. 数据模型 (前端模拟)
-应用将在首次加载时向 LocalStorage 注入预设的文章数据。
+应用将在首次加载时向 LocalStorage 注入预设的文章数据，并处理管理员身份验证状态。
 
 ### 4.1 数据模型定义
 ```typescript
+// 管理员认证状态 (存于 Zustand 或 LocalStorage)
+interface AuthState {
+  isAuthenticated: boolean;
+}
+
 // 文章模型
 interface Article {
   id: string;
@@ -64,3 +72,4 @@ interface Comment {
 ### 4.2 数据流转说明
 - **文章加载与筛选**：页面初始化时从 LocalStorage 读取 `Article` 列表，在首页通过计算属性实现按 `likes` 降序排列。搜索框输入关键字时，对 `title` 和 `summary` 进行模糊匹配；点击标签时，对 `tags` 数组进行精确过滤。
 - **评论发布**：在详情页，用户提交表单后生成新的 `Comment` 对象，追加到 LocalStorage 中的评论列表，并触发页面更新显示最新留言。
+- **后台管理**：管理员在登录页输入凭证（如简单的硬编码密码），验证通过后在 Zustand 存储认证状态。进入受保护的 `/admin` 路由后，可调用数据层的 `createArticle`, `updateArticle`, `deleteArticle` 方法直接修改 LocalStorage，并实时反馈至页面。
