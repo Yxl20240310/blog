@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Heart, ThumbsDown, Terminal, User, Clock, Send } from 'lucide-react';
+import { ArrowLeft, Heart, ThumbsDown, Terminal, User, Clock, Send, Download } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getArticleById, getCommentsByArticleId, addComment, likeArticle, dislikeArticle, Article, Comment } from '@/lib/mockData';
 import clsx from 'clsx';
@@ -47,6 +47,33 @@ export default function ArticleDetail() {
     setIsDisliked(true);
   };
 
+  const handleDownload = () => {
+    if (!article) return;
+    
+    // Construct the markdown content
+    const content = `# ${article.title}\n\n`
+      + `> Date: ${new Date(article.createdAt).toLocaleString()}\n`
+      + `> Tags: ${article.tags.join(', ')}\n\n`
+      + `${article.summary}\n\n`
+      + `---\n\n`
+      + `${article.content}`;
+
+    // Create blob and download link
+    const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    // Clean up filename
+    const safeTitle = article.title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    link.href = url;
+    link.download = `${safeTitle || 'article'}.md`;
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   const handleCommentSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!id || !newComment.trim() || !username.trim()) return;
@@ -67,14 +94,25 @@ export default function ArticleDetail() {
       animate={{ opacity: 1 }}
       className="max-w-4xl mx-auto space-y-12 pb-12"
     >
-      {/* Navigation Back */}
-      <button 
-        onClick={() => navigate(-1)}
-        className="flex items-center gap-2 text-gray-400 hover:text-neon-cyan font-mono transition-colors group"
-      >
-        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-        RETURN_TO_PREVIOUS
-      </button>
+      {/* Navigation Back & Actions */}
+      <div className="flex justify-between items-center">
+        <button 
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 text-gray-400 hover:text-neon-cyan font-mono transition-colors group"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          RETURN_TO_PREVIOUS
+        </button>
+        
+        <button 
+          onClick={handleDownload}
+          className="flex items-center gap-2 px-3 py-1.5 rounded-md border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/10 hover:shadow-glow-cyan transition-all font-mono text-sm"
+          title="Download Article"
+        >
+          <Download size={16} />
+          EXPORT_DATA
+        </button>
+      </div>
 
       {/* Article Header */}
       <header className="space-y-6">
