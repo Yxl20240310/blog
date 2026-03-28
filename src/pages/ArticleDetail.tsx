@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, MessageSquare, Send, User, Calendar, Flame, ThumbsDown } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Send, User, Calendar, Flame, ThumbsDown, Download } from 'lucide-react';
 import { useStore } from '../store/useStore';
 
 const ArticleDetail: React.FC = () => {
@@ -90,6 +90,36 @@ const ArticleDetail: React.FC = () => {
     triggerParticles(e, 'dislike');
   };
 
+  const handleDownload = () => {
+    // 构建 Markdown 内容
+    const markdownContent = `
+# ${article.title}
+
+> ${article.excerpt}
+
+**作者:** ${article.author}  
+**日期:** ${article.date}  
+**标签:** ${article.tags.join(', ')}
+
+---
+
+${article.content}
+    `.trim();
+
+    // 创建 Blob 和下载链接
+    const blob = new Blob([markdownContent], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${article.title}.md`;
+    document.body.appendChild(a);
+    a.click();
+    
+    // 清理
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="min-h-screen pb-20 relative">
       {/* Background decoration */}
@@ -97,10 +127,22 @@ const ArticleDetail: React.FC = () => {
       
       {/* Article Header */}
       <div className="w-full border-b border-white/10 bg-slate-900/50 backdrop-blur-md pt-12 pb-8 px-4">
-        <div className="max-w-3xl mx-auto">
-          <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-neon-green transition-colors mb-8 font-mono text-sm">
-            <ArrowLeft size={16} /> 返回列表 / BACK
-          </Link>
+        <div className="max-w-3xl mx-auto relative">
+          <div className="flex items-center justify-between mb-8">
+            <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-neon-green transition-colors font-mono text-sm">
+              <ArrowLeft size={16} /> 返回列表 / BACK
+            </Link>
+            
+            <button 
+              onClick={handleDownload}
+              className="flex items-center gap-2 px-3 py-1.5 bg-neon-blue/10 text-neon-blue border border-neon-blue/30 rounded hover:bg-neon-blue/20 hover:shadow-[0_0_10px_rgba(59,130,246,0.3)] transition-all text-xs font-mono group"
+              title="下载 Markdown 源码"
+            >
+              <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" />
+              下载文章 / DL
+            </button>
+          </div>
+          
           <div className="flex flex-wrap gap-2 mb-4">
             {article.tags.map(tag => (
               <span key={tag} className="text-xs font-mono text-neon-blue bg-neon-blue/10 px-2 py-1 rounded">
