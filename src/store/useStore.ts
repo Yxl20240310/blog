@@ -99,7 +99,9 @@ export const useStore = create<StoreState>()(
       articles: initialArticles.map(a => ({ 
         ...a, 
         published: a.published ?? true,
-        dislikes: a.dislikes ?? 0 
+        dislikes: a.dislikes ?? 0,
+        visibility: a.visibility ?? 'public',
+        allowedUsers: a.allowedUsers ?? []
       })),
       
       addArticle: (articleData) =>
@@ -111,6 +113,8 @@ export const useStore = create<StoreState>()(
               likes: 0,
               dislikes: 0,
               date: new Date().toISOString().split('T')[0],
+              visibility: articleData.visibility || 'public',
+              allowedUsers: articleData.allowedUsers || [],
             },
             ...state.articles,
           ],

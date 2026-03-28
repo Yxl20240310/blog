@@ -7,11 +7,23 @@ import { useStore } from '../store/useStore';
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   
-  const storeArticles = useStore(state => state.articles);
-  const article = storeArticles.find(a => a.id === id && a.published);
+  const { articles, comments, addComment, likeArticle, dislikeArticle, currentUser, isAdmin } = useStore();
   
-  const { comments, addComment, likeArticle, dislikeArticle } = useStore();
-  const { currentUser } = useStore();
+  const article = articles.find(a => {
+    if (a.id !== id) return false;
+    
+    // Admin bypasses checks
+    if (isAdmin) return true;
+    
+    if (!a.published) return false;
+    if (a.visibility === 'private') return false;
+    if (a.visibility === 'partial') {
+      if (!currentUser || !a.allowedUsers?.includes(currentUser.username)) return false;
+    }
+    
+    return true;
+  });
+  
   const [newComment, setNewComment] = useState('');
   const [hasVoted, setHasVoted] = useState(false);
   const [voteType, setVoteType] = useState<'like' | 'dislike' | null>(null);
@@ -32,11 +44,11 @@ const ArticleDetail: React.FC = () => {
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !currentUser) return;
+    if (!newComment.trim() || (!currentUser && !isAdmin)) return;
 
     addComment({
       articleId: article.id,
-      username: currentUser.username,
+      username: isAdmin ? 'Admin' : currentUser!.username,
       content: newComment,
     });
 
@@ -260,7 +272,7 @@ const ArticleDetail: React.FC = () => {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm font-mono text-slate-400">
-                以 <span className="text-neon-blue">{currentUser?.username}</span> 的身份留言
+                以 <span className="text-neon-blue">{isAdmin ? 'Admin' : currentUser?.username}</span> 的身份留言
               </span>
               <button
                 type="submit"

@@ -18,6 +18,8 @@ export interface Article {
   author: string;
   readTime: string;
   published: boolean;
+  visibility?: 'public' | 'private' | 'partial';
+  allowedUsers?: string[]; // array of usernames
 }
 
 export interface Comment {

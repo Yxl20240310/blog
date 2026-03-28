@@ -14,9 +14,9 @@ import { useStore } from './store/useStore';
 
 // 路由守卫组件
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { currentUser } = useStore();
+  const { currentUser, isAdmin } = useStore();
   
-  if (!currentUser) {
+  if (!currentUser && !isAdmin) {
     return <Navigate to="/login" replace />;
   }
   

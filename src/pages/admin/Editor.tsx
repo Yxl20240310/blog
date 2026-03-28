@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { Save, ArrowLeft, Tag as TagIcon, Layout } from 'lucide-react';
+import { Save, ArrowLeft, Tag as TagIcon, Layout, Globe, Lock, Users } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Editor: React.FC = () => {
@@ -17,7 +17,9 @@ const Editor: React.FC = () => {
     tags: '',
     author: 'Admin',
     readTime: '5 min read',
-    published: false
+    published: false,
+    visibility: 'public' as 'public' | 'private' | 'partial',
+    allowedUsers: ''
   });
 
   useEffect(() => {
@@ -31,7 +33,9 @@ const Editor: React.FC = () => {
           tags: article.tags.join(', '),
           author: article.author,
           readTime: article.readTime,
-          published: article.published
+          published: article.published,
+          visibility: article.visibility || 'public',
+          allowedUsers: article.allowedUsers ? article.allowedUsers.join(', ') : ''
         });
       }
     }
@@ -51,6 +55,7 @@ const Editor: React.FC = () => {
     e.preventDefault();
     
     const tagsArray = formData.tags.split(',').map(t => t.trim()).filter(Boolean);
+    const allowedUsersArray = formData.allowedUsers.split(',').map(u => u.trim()).filter(Boolean);
     
     const articleData = {
       title: formData.title,
@@ -59,7 +64,9 @@ const Editor: React.FC = () => {
       tags: tagsArray,
       author: formData.author,
       readTime: formData.readTime,
-      published: formData.published
+      published: formData.published,
+      visibility: formData.visibility,
+      allowedUsers: allowedUsersArray
     };
 
     if (isEditing && id) {
@@ -158,6 +165,70 @@ const Editor: React.FC = () => {
                 </label>
               </div>
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Visibility */}
+            <div>
+              <label className="block text-sm font-mono text-slate-400 mb-2 flex items-center gap-2">
+                <Globe size={14} /> 可见度 / VISIBILITY
+              </label>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-mono text-slate-300">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="public"
+                    checked={formData.visibility === 'public'}
+                    onChange={handleChange}
+                    className="accent-neon-blue"
+                  />
+                  <Globe size={14} className="text-neon-blue" /> 全局可见
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-mono text-slate-300">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="private"
+                    checked={formData.visibility === 'private'}
+                    onChange={handleChange}
+                    className="accent-neon-red"
+                  />
+                  <Lock size={14} className="text-neon-red" /> 仅自己
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-mono text-slate-300">
+                  <input
+                    type="radio"
+                    name="visibility"
+                    value="partial"
+                    checked={formData.visibility === 'partial'}
+                    onChange={handleChange}
+                    className="accent-neon-purple"
+                  />
+                  <Users size={14} className="text-neon-purple" /> 部分可见
+                </label>
+              </div>
+            </div>
+
+            {/* Allowed Users */}
+            {formData.visibility === 'partial' && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+              >
+                <label className="block text-sm font-mono text-slate-400 mb-2 flex items-center gap-2">
+                  <Users size={14} /> 允许用户 / ALLOWED USERS (逗号分隔代号)
+                </label>
+                <input
+                  type="text"
+                  name="allowedUsers"
+                  value={formData.allowedUsers}
+                  onChange={handleChange}
+                  className="w-full bg-cyber-black border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all"
+                  placeholder="user1, user2..."
+                />
+              </motion.div>
+            )}
           </div>
 
           {/* Content */}

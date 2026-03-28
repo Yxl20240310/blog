@@ -2,13 +2,34 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
-import { Edit, Trash2, Plus, Eye, EyeOff } from 'lucide-react';
+import { Edit, Trash2, Plus, Eye, EyeOff, Globe, Lock, Users } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
   const { articles, deleteArticle, updateArticle } = useStore();
 
   const togglePublish = (id: string, currentStatus: boolean) => {
     updateArticle(id, { published: !currentStatus });
+  };
+
+  const cycleVisibility = (id: string, currentVisibility?: string) => {
+    let nextVisibility: 'public' | 'private' | 'partial' = 'public';
+    if (!currentVisibility || currentVisibility === 'public') nextVisibility = 'private';
+    else if (currentVisibility === 'private') nextVisibility = 'partial';
+    else nextVisibility = 'public';
+    
+    updateArticle(id, { visibility: nextVisibility });
+  };
+
+  const getVisibilityIcon = (visibility?: string) => {
+    if (visibility === 'private') return <Lock size={12} />;
+    if (visibility === 'partial') return <Users size={12} />;
+    return <Globe size={12} />;
+  };
+
+  const getVisibilityText = (visibility?: string) => {
+    if (visibility === 'private') return '仅自己';
+    if (visibility === 'partial') return '部分可见';
+    return '全局可见';
   };
 
   const handleDelete = (id: string) => {
@@ -36,6 +57,7 @@ const Dashboard: React.FC = () => {
               <tr className="border-b border-white/10 text-slate-400 font-mono text-sm bg-white/5">
                 <th className="p-4 font-medium">标题 / TITLE</th>
                 <th className="p-4 font-medium">状态 / STATUS</th>
+                <th className="p-4 font-medium">可见度 / VISIBILITY</th>
                 <th className="p-4 font-medium">日期 / DATE</th>
                 <th className="p-4 font-medium">点赞 / LIKES</th>
                 <th className="p-4 font-medium text-right">操作 / ACTIONS</th>
@@ -44,7 +66,7 @@ const Dashboard: React.FC = () => {
             <tbody>
               {articles.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="p-8 text-center text-slate-500 font-mono">
+                  <td colSpan={6} className="p-8 text-center text-slate-500 font-mono">
                     暂无文章数据_
                   </td>
                 </tr>
@@ -73,6 +95,21 @@ const Dashboard: React.FC = () => {
                         }`}
                       >
                         {article.published ? <><Eye size={12} /> 已发布</> : <><EyeOff size={12} /> 草稿</>}
+                      </button>
+                    </td>
+                    <td className="p-4">
+                      <button 
+                        onClick={() => cycleVisibility(article.id, article.visibility)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono border transition-colors ${
+                          (!article.visibility || article.visibility === 'public')
+                            ? 'bg-neon-blue/10 text-neon-blue border-neon-blue/30 hover:bg-neon-blue/20' 
+                            : article.visibility === 'private'
+                              ? 'bg-neon-red/10 text-neon-red border-neon-red/30 hover:bg-neon-red/20'
+                              : 'bg-neon-purple/10 text-neon-purple border-neon-purple/30 hover:bg-neon-purple/20'
+                        }`}
+                        title="点击切换可见度"
+                      >
+                        {getVisibilityIcon(article.visibility)} {getVisibilityText(article.visibility)}
                       </button>
                     </td>
                     <td className="p-4 text-slate-400 text-sm font-mono">{article.date}</td>
