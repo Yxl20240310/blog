@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useStore } from '../store/useStore';
-import { Terminal, LogOut, LayoutDashboard, FileText, Users } from 'lucide-react';
+import { Terminal, LogOut, LayoutDashboard, FileText, Users, Folder } from 'lucide-react';
 
 const AdminLayout: React.FC = () => {
   const { isAdmin, logout } = useStore();
@@ -65,6 +65,16 @@ const AdminLayout: React.FC = () => {
             }`}
           >
             <Users size={18} /> 用户管理 / Users
+          </Link>
+          <Link 
+            to="/admin/folders" 
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-mono ${
+              isActive('/admin/folders') 
+                ? 'bg-white/10 text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]' 
+                : 'text-slate-400 hover:bg-white/5 hover:text-neon-purple'
+            }`}
+          >
+            <Folder size={18} /> 分类管理 / Folders
           </Link>
         </nav>
         <div className="p-4 border-t border-white/10">

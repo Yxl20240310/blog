@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../../store/useStore';
-import { Save, ArrowLeft, Tag as TagIcon, Layout, Globe, Lock, Users } from 'lucide-react';
+import { Save, ArrowLeft, Tag as TagIcon, Layout, Globe, Lock, Users, Folder } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Editor: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
   const navigate = useNavigate();
-  const { articles, addArticle, updateArticle } = useStore();
+  const { articles, folders, addArticle, updateArticle } = useStore();
   
   const isEditing = Boolean(id);
   const [formData, setFormData] = useState({
@@ -19,7 +19,8 @@ const Editor: React.FC = () => {
     readTime: '5 min read',
     published: false,
     visibility: 'public' as 'public' | 'private' | 'partial',
-    allowedUsers: ''
+    allowedUsers: '',
+    folderId: 'default'
   });
 
   useEffect(() => {
@@ -35,7 +36,8 @@ const Editor: React.FC = () => {
           readTime: article.readTime,
           published: article.published,
           visibility: article.visibility || 'public',
-          allowedUsers: article.allowedUsers ? article.allowedUsers.join(', ') : ''
+          allowedUsers: article.allowedUsers ? article.allowedUsers.join(', ') : '',
+          folderId: article.folderId || 'default'
         });
       }
     }
@@ -66,7 +68,8 @@ const Editor: React.FC = () => {
       readTime: formData.readTime,
       published: formData.published,
       visibility: formData.visibility,
-      allowedUsers: allowedUsersArray
+      allowedUsers: allowedUsersArray,
+      folderId: formData.folderId
     };
 
     if (isEditing && id) {
@@ -130,6 +133,23 @@ const Editor: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Folder Selection */}
+            <div>
+              <label className="block text-sm font-mono text-slate-400 mb-2 flex items-center gap-2">
+                <Folder size={14} /> 分类 / FOLDER
+              </label>
+              <select
+                name="folderId"
+                value={formData.folderId}
+                onChange={handleChange}
+                className="w-full bg-cyber-black border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-neon-blue focus:ring-1 focus:ring-neon-blue transition-all"
+              >
+                {folders.map(f => (
+                  <option key={f.id} value={f.id}>{f.name}</option>
+                ))}
+              </select>
+            </div>
+
             {/* Tags */}
             <div>
               <label className="block text-sm font-mono text-slate-400 mb-2 flex items-center gap-2">
@@ -144,7 +164,9 @@ const Editor: React.FC = () => {
                 placeholder="React, Frontend, Cyberpunk..."
               />
             </div>
-            
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Publish Status */}
             <div>
               <label className="block text-sm font-mono text-slate-400 mb-2 flex items-center gap-2">

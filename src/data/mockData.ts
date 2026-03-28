@@ -6,6 +6,12 @@ export interface User {
   lastLoginTime?: string;
 }
 
+export interface Folder {
+  id: string;
+  name: string;
+  createdAt: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -20,6 +26,7 @@ export interface Article {
   published: boolean;
   visibility?: 'public' | 'private' | 'partial';
   allowedUsers?: string[]; // array of usernames
+  folderId?: string; // Reference to Folder.id
 }
 
 export interface Comment {

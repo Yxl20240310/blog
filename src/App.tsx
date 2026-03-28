@@ -8,6 +8,7 @@ import Login from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import Editor from './pages/admin/Editor';
 import UserManagement from './pages/admin/UserManagement';
+import FolderManagement from './pages/admin/FolderManagement';
 import UserLogin from './pages/UserLogin';
 import UserRegister from './pages/UserRegister';
 import { useStore } from './store/useStore';
@@ -51,6 +52,7 @@ function App() {
           <Route path="editor" element={<Editor />} />
           <Route path="editor/:id" element={<Editor />} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="folders" element={<FolderManagement />} />
         </Route>
       </Routes>
     </Router>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Comment, Article, User, articles as initialArticles } from '../data/mockData';
+import { Comment, Article, User, Folder, articles as initialArticles } from '../data/mockData';
 
 interface StoreState {
   // Users
@@ -11,6 +11,12 @@ interface StoreState {
   userLogout: () => void;
   resetUserPassword: (userId: string) => void;
   deleteUser: (userId: string) => void;
+
+  // Folders
+  folders: Folder[];
+  addFolder: (name: string) => void;
+  updateFolder: (id: string, name: string) => void;
+  deleteFolder: (id: string) => void;
 
   // Comments
   comments: Comment[];
@@ -82,6 +88,41 @@ export const useStore = create<StoreState>()(
         }));
       },
 
+      // Folders
+      folders: [
+        { id: 'default', name: '默认分类', createdAt: new Date().toISOString() }
+      ],
+      addFolder: (name) => {
+        set((state) => ({
+          folders: [
+            ...state.folders,
+            {
+              id: Math.random().toString(36).substring(7),
+              name,
+              createdAt: new Date().toISOString()
+            }
+          ]
+        }));
+      },
+      updateFolder: (id, name) => {
+        set((state) => ({
+          folders: state.folders.map(f => 
+            f.id === id ? { ...f, name } : f
+          )
+        }));
+      },
+      deleteFolder: (id) => {
+        // Can't delete default folder
+        if (id === 'default') return;
+        set((state) => ({
+          folders: state.folders.filter(f => f.id !== id),
+          // Move articles in deleted folder to default folder
+          articles: state.articles.map(a => 
+            a.folderId === id ? { ...a, folderId: 'default' } : a
+          )
+        }));
+      },
+
       // Comments
       addComment: (comment) =>
         set((state) => ({
@@ -101,7 +142,8 @@ export const useStore = create<StoreState>()(
         published: a.published ?? true,
         dislikes: a.dislikes ?? 0,
         visibility: a.visibility ?? 'public',
-        allowedUsers: a.allowedUsers ?? []
+        allowedUsers: a.allowedUsers ?? [],
+        folderId: a.folderId ?? 'default'
       })),
       
       addArticle: (articleData) =>
@@ -115,6 +157,7 @@ export const useStore = create<StoreState>()(
               date: new Date().toISOString().split('T')[0],
               visibility: articleData.visibility || 'public',
               allowedUsers: articleData.allowedUsers || [],
+              folderId: articleData.folderId || 'default',
             },
             ...state.articles,
           ],

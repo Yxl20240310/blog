@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStore } from '../../store/useStore';
-import { Edit, Trash2, Plus, Eye, EyeOff, Globe, Lock, Users } from 'lucide-react';
+import { Edit, Trash2, Plus, Eye, EyeOff, Globe, Lock, Users, Folder } from 'lucide-react';
 
 const Dashboard: React.FC = () => {
-  const { articles, deleteArticle, updateArticle } = useStore();
+  const { articles, folders, deleteArticle, updateArticle } = useStore();
+  const [selectedFolder, setSelectedFolder] = useState<string>('all');
+
+  const filteredArticles = selectedFolder === 'all' 
+    ? articles 
+    : articles.filter(a => a.folderId === selectedFolder || (!a.folderId && selectedFolder === 'default'));
 
   const togglePublish = (id: string, currentStatus: boolean) => {
     updateArticle(id, { published: !currentStatus });
@@ -42,12 +47,27 @@ const Dashboard: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold font-mono text-white">仪表盘 / DASHBOARD</h1>
-        <Link 
-          to="/admin/editor" 
-          className="flex items-center gap-2 px-4 py-2 bg-neon-green/20 border border-neon-green/50 text-neon-green rounded-lg hover:bg-neon-green hover:text-cyber-black transition-all font-mono shadow-[0_0_15px_rgba(16,185,129,0.2)]"
-        >
-          <Plus size={18} /> 新建文章
-        </Link>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 glass px-3 py-2 rounded-lg border border-white/10">
+            <Folder size={16} className="text-slate-400" />
+            <select 
+              value={selectedFolder}
+              onChange={(e) => setSelectedFolder(e.target.value)}
+              className="bg-transparent text-slate-300 font-mono text-sm focus:outline-none"
+            >
+              <option value="all" className="bg-cyber-black">全部文章</option>
+              {folders.map(f => (
+                <option key={f.id} value={f.id} className="bg-cyber-black">{f.name}</option>
+              ))}
+            </select>
+          </div>
+          <Link 
+            to="/admin/editor" 
+            className="flex items-center gap-2 px-4 py-2 bg-neon-green/20 border border-neon-green/50 text-neon-green rounded-lg hover:bg-neon-green hover:text-cyber-black transition-all font-mono shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+          >
+            <Plus size={18} /> 新建文章
+          </Link>
+        </div>
       </div>
 
       <div className="glass rounded-2xl border border-white/10 overflow-hidden">
@@ -56,6 +76,7 @@ const Dashboard: React.FC = () => {
             <thead>
               <tr className="border-b border-white/10 text-slate-400 font-mono text-sm bg-white/5">
                 <th className="p-4 font-medium">标题 / TITLE</th>
+                <th className="p-4 font-medium">分类 / FOLDER</th>
                 <th className="p-4 font-medium">状态 / STATUS</th>
                 <th className="p-4 font-medium">可见度 / VISIBILITY</th>
                 <th className="p-4 font-medium">日期 / DATE</th>
@@ -64,14 +85,14 @@ const Dashboard: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {articles.length === 0 ? (
+              {filteredArticles.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-slate-500 font-mono">
+                  <td colSpan={7} className="p-8 text-center text-slate-500 font-mono">
                     暂无文章数据_
                   </td>
                 </tr>
               ) : (
-                articles.map((article, index) => (
+                filteredArticles.map((article, index) => (
                   <motion.tr 
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -84,6 +105,17 @@ const Dashboard: React.FC = () => {
                         {article.title}
                       </div>
                       <div className="text-xs text-slate-500 mt-1 line-clamp-1">{article.excerpt}</div>
+                    </td>
+                    <td className="p-4">
+                      <select
+                        value={article.folderId || 'default'}
+                        onChange={(e) => updateArticle(article.id, { folderId: e.target.value })}
+                        className="bg-slate-800 text-slate-300 text-xs font-mono px-2 py-1 rounded border border-slate-700 focus:outline-none focus:border-neon-green"
+                      >
+                        {folders.map(f => (
+                          <option key={f.id} value={f.id}>{f.name}</option>
+                        ))}
+                      </select>
                     </td>
                     <td className="p-4">
                       <button 
