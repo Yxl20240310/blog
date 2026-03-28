@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, MessageSquare, Send, User, Calendar, Flame } from 'lucide-react';
-import { articles } from '../data/mockData';
 import { useStore } from '../store/useStore';
 
 const ArticleDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const article = articles.find(a => a.id === id);
+  
+  const storeArticles = useStore(state => state.articles);
+  const article = storeArticles.find(a => a.id === id && a.published);
   
   const { comments, addComment } = useStore();
   const [newComment, setNewComment] = useState('');

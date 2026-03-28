@@ -1,30 +1,41 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { articles, getAllTags } from '../data/mockData';
+import { getAllTags } from '../data/mockData';
 import { ArrowRight, Flame, Tag as TagIcon, Clock, Calendar } from 'lucide-react';
+import { useStore } from '../store/useStore';
 
 const Home: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const keyword = searchParams.get('search') || '';
   const selectedTag = searchParams.get('tag') || '';
   
-  const tags = useMemo(() => getAllTags(), []);
+  const storeArticles = useStore(state => state.articles);
+  const publishedArticles = useMemo(() => storeArticles.filter(a => a.published), [storeArticles]);
+  
+  const tags = useMemo(() => {
+    const allTags = new Set<string>();
+    publishedArticles.forEach(article => {
+      article.tags.forEach(tag => allTags.add(tag));
+    });
+    return Array.from(allTags);
+  }, [publishedArticles]);
 
   // 1. Find most liked article
   const topArticle = useMemo(() => {
-    return [...articles].sort((a, b) => b.likes - a.likes)[0];
-  }, []);
+    if (publishedArticles.length === 0) return null;
+    return [...publishedArticles].sort((a, b) => b.likes - a.likes)[0];
+  }, [publishedArticles]);
 
   // 2. Filter articles based on search and tag
   const filteredArticles = useMemo(() => {
-    return articles.filter(article => {
+    return publishedArticles.filter(article => {
       const matchKeyword = article.title.toLowerCase().includes(keyword.toLowerCase()) || 
                            article.excerpt.toLowerCase().includes(keyword.toLowerCase());
       const matchTag = selectedTag ? article.tags.includes(selectedTag) : true;
       return matchKeyword && matchTag;
     });
-  }, [keyword, selectedTag]);
+  }, [publishedArticles, keyword, selectedTag]);
 
   const handleTagClick = (tag: string) => {
     if (selectedTag === tag) {

@@ -8,6 +8,7 @@ export interface Article {
   date: string;
   author: string;
   readTime: string;
+  published: boolean;
 }
 
 export interface Comment {
