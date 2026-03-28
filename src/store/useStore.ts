@@ -1,8 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Comment, Article, articles as initialArticles } from '../data/mockData';
+import { Comment, Article, User, articles as initialArticles } from '../data/mockData';
 
 interface StoreState {
+  // Users
+  users: User[];
+  currentUser: User | null;
+  registerUser: (user: Omit<User, 'id' | 'createdAt'>) => boolean;
+  userLogin: (username: string, password: string) => boolean;
+  userLogout: () => void;
+
   // Comments
   comments: Comment[];
   addComment: (comment: Omit<Comment, 'id' | 'date'>) => void;
@@ -21,8 +28,39 @@ interface StoreState {
 
 export const useStore = create<StoreState>()(
   persist(
-    (set) => ({
-      comments: [],
+    (set, get) => ({
+      // Users
+      users: [],
+      currentUser: null,
+      registerUser: (userData) => {
+        const { users } = get();
+        if (users.some((u) => u.username === userData.username)) {
+          return false; // Username exists
+        }
+        set((state) => ({
+          users: [
+            ...state.users,
+            {
+              ...userData,
+              id: Math.random().toString(36).substring(7),
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        }));
+        return true;
+      },
+      userLogin: (username, password) => {
+        const { users } = get();
+        const user = users.find((u) => u.username === username && u.password === password);
+        if (user) {
+          set({ currentUser: user });
+          return true;
+        }
+        return false;
+      },
+      userLogout: () => set({ currentUser: null }),
+
+      // Comments
       addComment: (comment) =>
         set((state) => ({
           comments: [

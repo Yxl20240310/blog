@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Terminal, Search, Menu, X } from 'lucide-react';
+import { Terminal, Search, Menu, X, User as UserIcon, LogOut } from 'lucide-react';
+import { useStore } from '../store/useStore';
 
 interface NavbarProps {
   onSearch?: (keyword: string) => void;
@@ -11,13 +12,13 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
   const [keyword, setKeyword] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const { currentUser, userLogout } = useStore();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (onSearch) {
       onSearch(keyword);
     } else {
-      // If not on home page, navigate to home with search param
       navigate(`/?search=${encodeURIComponent(keyword)}`);
     }
   };
@@ -50,13 +51,41 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
                 />
               </form>
             )}
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 items-center">
               <Link to="/" className="text-slate-300 hover:text-neon-green hover:shadow-neon-green transition-all duration-300 px-3 py-2 rounded-md text-sm font-medium">
                 首页
               </Link>
-              <a href="https://github.com" target="_blank" rel="noreferrer" className="text-slate-300 hover:text-neon-purple transition-all duration-300 px-3 py-2 rounded-md text-sm font-medium">
-                GitHub
-              </a>
+              
+              {currentUser ? (
+                <div className="flex items-center gap-4 ml-4 pl-4 border-l border-white/10">
+                  <div className="flex items-center gap-2 text-neon-blue font-mono text-sm">
+                    <UserIcon size={16} />
+                    <span>{currentUser.username}</span>
+                  </div>
+                  <button 
+                    onClick={userLogout}
+                    className="text-slate-400 hover:text-red-400 transition-colors"
+                    title="退出登录"
+                  >
+                    <LogOut size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 ml-2 pl-4 border-l border-white/10">
+                  <Link 
+                    to="/login" 
+                    className="text-slate-300 hover:text-neon-blue transition-colors text-sm font-mono"
+                  >
+                    登录
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="px-3 py-1 bg-neon-green/20 text-neon-green border border-neon-green/50 rounded hover:bg-neon-green hover:text-cyber-black transition-all text-sm font-mono"
+                  >
+                    注册
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
 
@@ -93,9 +122,37 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
             <Link to="/" className="block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-neon-green hover:bg-slate-800">
               首页
             </Link>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="block px-3 py-2 rounded-md text-base font-medium text-slate-300 hover:text-neon-purple hover:bg-slate-800">
-              GitHub
-            </a>
+            
+            <div className="mt-4 pt-4 border-t border-white/10">
+              {currentUser ? (
+                <div className="space-y-2">
+                  <div className="px-3 py-2 text-neon-blue font-mono flex items-center gap-2">
+                    <UserIcon size={16} /> {currentUser.username}
+                  </div>
+                  <button 
+                    onClick={userLogout}
+                    className="w-full text-left px-3 py-2 text-red-400 hover:bg-slate-800 rounded-md font-mono"
+                  >
+                    退出登录
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 px-3">
+                  <Link 
+                    to="/login" 
+                    className="block text-center py-2 text-slate-300 border border-slate-700 rounded-md hover:bg-slate-800 font-mono"
+                  >
+                    登录
+                  </Link>
+                  <Link 
+                    to="/register" 
+                    className="block text-center py-2 bg-neon-green/20 text-neon-green border border-neon-green/50 rounded-md hover:bg-neon-green hover:text-cyber-black font-mono"
+                  >
+                    注册
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

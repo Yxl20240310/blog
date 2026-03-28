@@ -11,8 +11,8 @@ const ArticleDetail: React.FC = () => {
   const article = storeArticles.find(a => a.id === id && a.published);
   
   const { comments, addComment } = useStore();
+  const { currentUser } = useStore();
   const [newComment, setNewComment] = useState('');
-  const [username, setUsername] = useState('');
 
   if (!article) {
     return (
@@ -29,11 +29,11 @@ const ArticleDetail: React.FC = () => {
 
   const handleSubmitComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newComment.trim() || !username.trim()) return;
+    if (!newComment.trim() || !currentUser) return;
 
     addComment({
       articleId: article.id,
-      username: username,
+      username: currentUser.username,
       content: newComment,
     });
 
@@ -121,16 +121,6 @@ const ArticleDetail: React.FC = () => {
           {/* Comment Form */}
           <form onSubmit={handleSubmitComment} className="mb-12 glass p-6 rounded-2xl border border-slate-800 shadow-lg">
             <div className="mb-4">
-              <input
-                type="text"
-                placeholder="代号 / Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full md:w-1/2 bg-cyber-black border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-neon-purple focus:ring-1 focus:ring-neon-purple transition-all font-mono text-sm"
-                required
-              />
-            </div>
-            <div className="mb-4">
               <textarea
                 placeholder="输入你想说的话... / Enter your message..."
                 value={newComment}
@@ -139,12 +129,17 @@ const ArticleDetail: React.FC = () => {
                 required
               />
             </div>
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-6 py-3 bg-neon-purple text-white rounded-lg font-medium hover:bg-purple-500 hover:shadow-neon-purple transition-all duration-300 group"
-            >
-              发送 / SEND <Send size={16} className="group-hover:translate-x-1 transition-transform" />
-            </button>
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-mono text-slate-400">
+                以 <span className="text-neon-blue">{currentUser?.username}</span> 的身份留言
+              </span>
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-6 py-3 bg-neon-purple text-white rounded-lg font-medium hover:bg-purple-500 hover:shadow-neon-purple transition-all duration-300 group"
+              >
+                发送 / SEND <Send size={16} className="group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </form>
 
           {/* Comments List */}

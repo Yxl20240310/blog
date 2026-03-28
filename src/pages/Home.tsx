@@ -46,6 +46,17 @@ const Home: React.FC = () => {
     setSearchParams(searchParams);
   };
 
+  const { currentUser } = useStore();
+
+  const handleArticleClick = (e: React.MouseEvent, articleId: string) => {
+    if (!currentUser) {
+      e.preventDefault();
+      alert('请先登录后查看文章详情 / PLEASE LOGIN TO VIEW DETAILS');
+      // 可选：直接跳转到登录页
+      // window.location.href = '/login';
+    }
+  };
+
   return (
     <div className="min-h-screen pt-8 pb-20 relative">
       {/* Background decoration */}
@@ -82,6 +93,7 @@ const Home: React.FC = () => {
                 </div>
                 <Link 
                   to={`/article/${topArticle.id}`}
+                  onClick={(e) => handleArticleClick(e, topArticle.id)}
                   className="inline-flex items-center gap-2 px-6 py-3 bg-neon-blue/10 hover:bg-neon-blue/20 border border-neon-blue/50 text-neon-blue rounded-full transition-all duration-300 hover:shadow-neon-blue hover:-translate-y-1 font-medium"
                 >
                   阅读全文 <ArrowRight size={18} />
@@ -127,7 +139,7 @@ const Home: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                 >
-                  <Link to={`/article/${article.id}`} className="block h-full group">
+                  <Link to={`/article/${article.id}`} onClick={(e) => handleArticleClick(e, article.id)} className="block h-full group">
                     <div className="h-full bg-slate-900/40 border border-slate-800 rounded-2xl p-6 transition-all duration-300 hover:bg-slate-800/60 hover:border-neon-green/50 hover:shadow-neon-green hover:-translate-y-2 flex flex-col glass">
                       <div className="flex flex-wrap gap-2 mb-4">
                         {article.tags.map(tag => (

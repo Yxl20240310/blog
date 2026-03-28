@@ -1,3 +1,10 @@
+export interface User {
+  id: string;
+  username: string;
+  password?: string; // Stored in local for mock
+  createdAt: string;
+}
+
 export interface Article {
   id: string;
   title: string;
