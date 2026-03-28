@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Terminal, Search, Menu, X, User as UserIcon, LogOut } from 'lucide-react';
+import { Terminal, Search, Menu, X, User as UserIcon, LogOut, UserMinus } from 'lucide-react';
 import { useStore } from '../store/useStore';
+import AccountDeletionModal from './AccountDeletionModal';
 
 interface NavbarProps {
   onSearch?: (keyword: string) => void;
@@ -11,8 +12,10 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
   const [keyword, setKeyword] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  
   const navigate = useNavigate();
-  const { currentUser, userLogout } = useStore();
+  const { currentUser, userLogout, deleteUser, articles } = useStore();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,6 +25,19 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
       navigate(`/?search=${encodeURIComponent(keyword)}`);
     }
   };
+
+  const handleDeleteAccount = () => {
+    if (currentUser) {
+      deleteUser(currentUser.id);
+      setIsDeleteModalOpen(false);
+      navigate('/');
+    }
+  };
+
+  // 获取当前用户的所有文章（包括草稿）
+  const userArticles = currentUser 
+    ? articles.filter(a => a.author === currentUser.username)
+    : [];
 
   return (
     <nav className="sticky top-0 z-50 glass border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
@@ -64,10 +80,17 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
                   </div>
                   <button 
                     onClick={userLogout}
-                    className="text-slate-400 hover:text-red-400 transition-colors"
+                    className="text-slate-400 hover:text-white transition-colors"
                     title="退出登录"
                   >
                     <LogOut size={18} />
+                  </button>
+                  <button 
+                    onClick={() => setIsDeleteModalOpen(true)}
+                    className="text-slate-400 hover:text-neon-red transition-colors"
+                    title="注销账号"
+                  >
+                    <UserMinus size={18} />
                   </button>
                 </div>
               ) : (
@@ -131,9 +154,18 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
                   </div>
                   <button 
                     onClick={userLogout}
-                    className="w-full text-left px-3 py-2 text-red-400 hover:bg-slate-800 rounded-md font-mono"
+                    className="w-full text-left px-3 py-2 text-slate-300 hover:bg-slate-800 rounded-md font-mono flex items-center gap-2"
                   >
-                    退出登录
+                    <LogOut size={16} /> 退出登录
+                  </button>
+                  <button 
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setIsDeleteModalOpen(true);
+                    }}
+                    className="w-full text-left px-3 py-2 text-neon-red hover:bg-red-500/10 rounded-md font-mono flex items-center gap-2"
+                  >
+                    <UserMinus size={16} /> 注销账号
                   </button>
                 </div>
               ) : (
@@ -156,6 +188,14 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch, showSearch = false }) => {
           </div>
         </div>
       )}
+
+      {/* Account Deletion Modal */}
+      <AccountDeletionModal 
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteAccount}
+        userArticles={userArticles}
+      />
     </nav>
   );
 };

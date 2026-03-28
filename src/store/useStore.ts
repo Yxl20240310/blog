@@ -83,9 +83,20 @@ export const useStore = create<StoreState>()(
         }));
       },
       deleteUser: (userId) => {
-        set((state) => ({
-          users: state.users.filter(u => u.id !== userId)
-        }));
+        set((state) => {
+          const userToDelete = state.users.find(u => u.id === userId);
+          if (!userToDelete) return state;
+
+          const username = userToDelete.username;
+
+          return {
+            users: state.users.filter(u => u.id !== userId),
+            articles: state.articles.filter(a => a.author !== username),
+            comments: state.comments.filter(c => c.username !== username),
+            // If the deleted user is currently logged in, log them out
+            currentUser: state.currentUser?.id === userId ? null : state.currentUser
+          };
+        });
       },
 
       // Folders
