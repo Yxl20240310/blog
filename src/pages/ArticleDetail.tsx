@@ -14,6 +14,8 @@ const ArticleDetail: React.FC = () => {
   const { currentUser } = useStore();
   const [newComment, setNewComment] = useState('');
   const [hasVoted, setHasVoted] = useState(false);
+  const [voteType, setVoteType] = useState<'like' | 'dislike' | null>(null);
+  const [particles, setParticles] = useState<{ id: number, x: number, y: number, color: string }[]>([]);
 
   if (!article) {
     return (
@@ -41,16 +43,39 @@ const ArticleDetail: React.FC = () => {
     setNewComment('');
   };
 
-  const handleLike = () => {
+  const triggerParticles = (e: React.MouseEvent, type: 'like' | 'dislike') => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    
+    const newParticles = Array.from({ length: 12 }).map((_, i) => ({
+      id: Date.now() + i,
+      x: centerX,
+      y: centerY,
+      color: type === 'like' ? '#10B981' : '#EF4444' // neon-green or neon-red
+    }));
+    
+    setParticles(prev => [...prev, ...newParticles]);
+    
+    setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newParticles.find(np => np.id === p.id)));
+    }, 1000);
+  };
+
+  const handleLike = (e: React.MouseEvent) => {
     if (hasVoted) return;
     likeArticle(article.id);
     setHasVoted(true);
+    setVoteType('like');
+    triggerParticles(e, 'like');
   };
 
-  const handleDislike = () => {
+  const handleDislike = (e: React.MouseEvent) => {
     if (hasVoted) return;
     dislikeArticle(article.id);
     setHasVoted(true);
+    setVoteType('dislike');
+    triggerParticles(e, 'dislike');
   };
 
   return (
@@ -124,33 +149,90 @@ const ArticleDetail: React.FC = () => {
           initial={{ opacity: 0, scale: 0.9 }}
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
-          className="mt-16 flex items-center justify-center gap-6"
+          className="mt-16 flex items-center justify-center gap-6 relative"
         >
-          <button
+          {/* Particles */}
+          {particles.map((p) => (
+            <motion.div
+              key={p.id}
+              initial={{ 
+                opacity: 1, 
+                x: 0, 
+                y: 0,
+                scale: Math.random() * 0.5 + 0.5
+              }}
+              animate={{ 
+                opacity: 0,
+                x: (Math.random() - 0.5) * 200,
+                y: (Math.random() - 0.5) * 200,
+                scale: 0
+              }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="absolute w-2 h-2 rounded-full pointer-events-none z-50"
+              style={{
+                left: '50%',
+                top: '50%',
+                backgroundColor: p.color,
+                boxShadow: `0 0 10px ${p.color}, 0 0 20px ${p.color}`
+              }}
+            />
+          ))}
+
+          <motion.button
             onClick={handleLike}
             disabled={hasVoted}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full font-mono transition-all duration-300 ${
-              hasVoted 
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-                : 'bg-neon-green/10 text-neon-green border border-neon-green/30 hover:bg-neon-green/20 hover:shadow-neon-green'
+            whileHover={!hasVoted ? { scale: 1.05 } : {}}
+            whileTap={!hasVoted ? { scale: 0.95 } : {}}
+            animate={voteType === 'like' ? {
+              scale: [1, 1.2, 1],
+              rotate: [0, -10, 10, -10, 0],
+              transition: { duration: 0.5 }
+            } : {}}
+            className={`relative flex items-center gap-2 px-8 py-4 rounded-full font-mono transition-all duration-300 overflow-hidden ${
+              hasVoted && voteType !== 'like'
+                ? 'bg-slate-800/50 text-slate-600 border border-slate-700/50 cursor-not-allowed' 
+                : voteType === 'like'
+                  ? 'bg-neon-green/20 text-neon-green border-2 border-neon-green shadow-neon-green z-10'
+                  : 'bg-slate-900 text-neon-green border border-neon-green/30 hover:bg-neon-green/10 hover:border-neon-green/80 hover:shadow-neon-green group'
             }`}
           >
-            <Flame size={20} />
-            <span>{article.likes}</span>
-          </button>
+            {voteType === 'like' && (
+              <span className="absolute inset-0 bg-neon-green opacity-20 animate-ping-fast rounded-full" />
+            )}
+            <Flame 
+              size={24} 
+              className={voteType === 'like' ? 'fill-neon-green animate-pulse' : 'group-hover:animate-bounce'} 
+            />
+            <span className="text-lg font-bold">{article.likes}</span>
+          </motion.button>
           
-          <button
+          <motion.button
             onClick={handleDislike}
             disabled={hasVoted}
-            className={`flex items-center gap-2 px-6 py-3 rounded-full font-mono transition-all duration-300 ${
-              hasVoted 
-                ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-                : 'bg-red-500/10 text-red-400 border border-red-500/30 hover:bg-red-500/20 hover:shadow-[0_0_10px_rgba(239,68,68,0.3)]'
+            whileHover={!hasVoted ? { scale: 1.05 } : {}}
+            whileTap={!hasVoted ? { scale: 0.95 } : {}}
+            animate={voteType === 'dislike' ? {
+              scale: [1, 1.2, 1],
+              x: [0, -5, 5, -5, 0],
+              transition: { duration: 0.4 }
+            } : {}}
+            className={`relative flex items-center gap-2 px-8 py-4 rounded-full font-mono transition-all duration-300 overflow-hidden ${
+              hasVoted && voteType !== 'dislike'
+                ? 'bg-slate-800/50 text-slate-600 border border-slate-700/50 cursor-not-allowed' 
+                : voteType === 'dislike'
+                  ? 'bg-neon-red/20 text-neon-red border-2 border-neon-red shadow-neon-red z-10 animate-glitch'
+                  : 'bg-slate-900 text-neon-red border border-neon-red/30 hover:bg-neon-red/10 hover:border-neon-red/80 hover:shadow-[0_0_15px_rgba(239,68,68,0.4)] group'
             }`}
           >
-            <ThumbsDown size={20} />
-            <span>{article.dislikes || 0}</span>
-          </button>
+            {voteType === 'dislike' && (
+              <span className="absolute inset-0 bg-neon-red opacity-20 animate-ping-fast rounded-full" />
+            )}
+            <ThumbsDown 
+              size={24} 
+              className={voteType === 'dislike' ? 'fill-neon-red' : 'group-hover:-translate-y-1 transition-transform'} 
+            />
+            <span className="text-lg font-bold">{article.dislikes || 0}</span>
+          </motion.button>
         </motion.div>
 
         {/* Comments Section */}
