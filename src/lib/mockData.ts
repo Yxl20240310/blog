@@ -1,5 +1,12 @@
 export type ArticleVisibility = 'public' | 'restricted' | 'private';
 
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  createdAt: string;
+}
+
 export interface Article {
   id: string;
   title: string;
@@ -9,7 +16,8 @@ export interface Article {
   dislikes: number;
   tags: string[];
   createdAt: string;
-  visibility?: ArticleVisibility; // Optional for backward compatibility with existing data
+  visibility?: ArticleVisibility;
+  categoryId?: string; // Optional for backward compatibility
 }
 
 export interface Comment {
@@ -28,6 +36,21 @@ export interface User {
   lastLoginTime?: string;
 }
 
+const INITIAL_CATEGORIES: Category[] = [
+  {
+    id: "cat_1",
+    name: "前沿科技",
+    description: "量子计算、脑机接口等未来科技探讨",
+    createdAt: "2026-03-01T00:00:00Z"
+  },
+  {
+    id: "cat_2",
+    name: "Web开发",
+    description: "前端框架、UI/UX设计与实战教程",
+    createdAt: "2026-03-05T00:00:00Z"
+  }
+];
+
 const INITIAL_ARTICLES: Article[] = [
   {
     id: "1",
@@ -38,7 +61,8 @@ const INITIAL_ARTICLES: Article[] = [
     dislikes: 12,
     tags: ["量子计算", "未来科技", "密码学"],
     createdAt: "2026-03-25T10:00:00Z",
-    visibility: "public"
+    visibility: "public",
+    categoryId: "cat_1"
   },
   {
     id: "2",
@@ -49,7 +73,8 @@ const INITIAL_ARTICLES: Article[] = [
     dislikes: 45,
     tags: ["脑机接口", "AI", "赛博朋克"],
     createdAt: "2026-03-20T14:30:00Z",
-    visibility: "public"
+    visibility: "public",
+    categoryId: "cat_1"
   },
   {
     id: "3",
@@ -60,7 +85,8 @@ const INITIAL_ARTICLES: Article[] = [
     dislikes: 5,
     tags: ["Web开发", "React", "UI/UX", "Tailwind"],
     createdAt: "2026-03-28T09:15:00Z",
-    visibility: "restricted" // Restricted to logged-in users only
+    visibility: "restricted",
+    categoryId: "cat_2"
   },
   {
     id: "4",
@@ -71,7 +97,7 @@ const INITIAL_ARTICLES: Article[] = [
     dislikes: 120, // dislikes > 10% of likes to test the filter
     tags: ["Web3", "区块链", "隐私保护"],
     createdAt: "2026-03-15T08:00:00Z",
-    visibility: "private" // Private, only admin can see
+    visibility: "private"
   }
 ];
 
@@ -85,11 +111,62 @@ export const initMockData = () => {
   if (!localStorage.getItem("blog_users")) {
     localStorage.setItem("blog_users", JSON.stringify([]));
   }
+  if (!localStorage.getItem("blog_categories")) {
+    localStorage.setItem("blog_categories", JSON.stringify(INITIAL_CATEGORIES));
+  }
 };
 
 export const getArticles = (): Article[] => {
   const data = localStorage.getItem("blog_articles");
   return data ? JSON.parse(data) : [];
+};
+
+// --- Categories Management ---
+
+export const getCategories = (): Category[] => {
+  const data = localStorage.getItem("blog_categories");
+  return data ? JSON.parse(data) : [];
+};
+
+export const addCategory = (category: Omit<Category, "id" | "createdAt">) => {
+  const categories = getCategories();
+  const newCategory: Category = {
+    ...category,
+    id: `cat_${Math.random().toString(36).substring(2, 9)}`,
+    createdAt: new Date().toISOString()
+  };
+  categories.push(newCategory);
+  localStorage.setItem("blog_categories", JSON.stringify(categories));
+  return newCategory;
+};
+
+export const updateCategory = (id: string, updates: Partial<Omit<Category, "id" | "createdAt">>) => {
+  const categories = getCategories();
+  const updatedCategories = categories.map(c => 
+    c.id === id ? { ...c, ...updates } : c
+  );
+  localStorage.setItem("blog_categories", JSON.stringify(updatedCategories));
+};
+
+export const deleteCategory = (id: string) => {
+  const categories = getCategories();
+  const updatedCategories = categories.filter(c => c.id !== id);
+  localStorage.setItem("blog_categories", JSON.stringify(updatedCategories));
+  
+  // Also remove categoryId from articles that used this category
+  const articles = getArticles();
+  let articlesChanged = false;
+  const updatedArticles = articles.map(a => {
+    if (a.categoryId === id) {
+      articlesChanged = true;
+      const { categoryId, ...rest } = a;
+      return rest;
+    }
+    return a;
+  });
+  if (articlesChanged) {
+    localStorage.setItem("blog_articles", JSON.stringify(updatedArticles));
+  }
 };
 
 export const getArticleById = (id: string): Article | undefined => {

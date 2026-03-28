@@ -1,18 +1,21 @@
 import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Heart, Calendar, Hash, Lock, ShieldAlert } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { getArticles, Article } from '@/lib/mockData';
+import { ChevronRight, Heart, Calendar, Hash, Lock, ShieldAlert, Folder } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { getArticles, getCategories, Article, Category } from '@/lib/mockData';
 import { useAppStore } from '@/lib/store';
 import clsx from 'clsx';
 
 export default function Home() {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
   const { searchQuery, selectedTags, toggleTag, currentUser, isAdminAuthenticated } = useAppStore();
 
   useEffect(() => {
-    // Load articles on mount
     setArticles(getArticles());
+    setCategories(getCategories());
   }, []);
 
   // Extract all unique tags (respecting visibility)
@@ -31,6 +34,9 @@ export default function Home() {
   const filteredArticles = useMemo(() => {
     return articles
       .filter(article => {
+        // 0. Category Check
+        if (selectedCategory && article.categoryId !== selectedCategory) return false;
+
         // 1. Visibility Check
         if (article.visibility === 'private' && !isAdminAuthenticated) return false;
         if (article.visibility === 'restricted' && !currentUser && !isAdminAuthenticated) return false;
@@ -51,7 +57,7 @@ export default function Home() {
         return matchesSearch && matchesTags;
       })
       .sort((a, b) => b.likes - a.likes); // Sort by likes descending
-  }, [articles, searchQuery, selectedTags, currentUser, isAdminAuthenticated]);
+  }, [articles, searchQuery, selectedTags, currentUser, isAdminAuthenticated, selectedCategory]);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -88,6 +94,39 @@ export default function Home() {
           在这里，我们记录关于量子计算、人工智能、Web3以及赛博朋克未来的前沿思考与技术探索。
         </motion.p>
       </section>
+
+      {/* Categories Filter */}
+      {categories.length > 0 && (
+        <section className="flex gap-4 overflow-x-auto pb-4 hide-scrollbar">
+          <button
+            onClick={() => setSelectedCategory(null)}
+            className={clsx(
+              "flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm transition-all shrink-0 border",
+              selectedCategory === null
+                ? "bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-glow-cyan"
+                : "bg-black/40 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+            )}
+          >
+            <Folder size={16} />
+            ALL_FOLDERS
+          </button>
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={clsx(
+                "flex items-center gap-2 px-5 py-2.5 rounded-lg font-mono text-sm transition-all shrink-0 border",
+                selectedCategory === cat.id
+                  ? "bg-orange-500/20 border-orange-500 text-orange-500 shadow-[0_0_15px_rgba(249,115,22,0.3)]"
+                  : "bg-black/40 border-white/10 text-gray-400 hover:border-white/30 hover:text-white"
+              )}
+            >
+              <Folder size={16} />
+              {cat.name}
+            </button>
+          ))}
+        </section>
+      )}
 
       {/* Tags Filter */}
       <section className="space-y-4">

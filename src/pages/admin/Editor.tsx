@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Save, ArrowLeft, Terminal, Type, Hash, FileText, AlignLeft, Eye } from 'lucide-react';
+import { Save, ArrowLeft, Terminal, Type, Hash, FileText, AlignLeft, Eye, Folder } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getArticleById, addArticle, updateArticle, ArticleVisibility } from '@/lib/mockData';
+import { getArticleById, addArticle, updateArticle, ArticleVisibility, getCategories, Category } from '@/lib/mockData';
 import { useAppStore } from '@/lib/store';
 
 export default function ArticleEditor() {
@@ -15,6 +15,8 @@ export default function ArticleEditor() {
   const [content, setContent] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [visibility, setVisibility] = useState<ArticleVisibility>('public');
+  const [categoryId, setCategoryId] = useState<string>('');
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -22,6 +24,9 @@ export default function ArticleEditor() {
       navigate('/admin/login');
       return;
     }
+
+    // Load available categories
+    setCategories(getCategories());
 
     if (id) {
       const article = getArticleById(id);
@@ -31,6 +36,7 @@ export default function ArticleEditor() {
         setContent(article.content);
         setTagsInput(article.tags.join(', '));
         setVisibility(article.visibility || 'public');
+        setCategoryId(article.categoryId || '');
       } else {
         navigate('/admin');
       }
@@ -53,7 +59,8 @@ export default function ArticleEditor() {
       summary: summary.trim(),
       content: content.trim(),
       tags,
-      visibility
+      visibility,
+      categoryId: categoryId || undefined
     };
 
     setTimeout(() => {
@@ -131,8 +138,8 @@ export default function ArticleEditor() {
             />
           </div>
 
-          {/* Tags and Visibility in a row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Tags, Category, and Visibility in a row */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Tags */}
             <div className="space-y-2">
               <label className="text-sm font-mono text-neon-cyan flex items-center gap-2">
@@ -144,8 +151,26 @@ export default function ArticleEditor() {
                 value={tagsInput}
                 onChange={(e) => setTagsInput(e.target.value)}
                 className="block w-full px-4 py-3 border border-white/10 rounded-md bg-black/50 text-gray-300 placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono text-sm"
-                placeholder="e.g. Technology, Web3, AI"
+                placeholder="e.g. Technology, Web3"
               />
+            </div>
+
+            {/* Category */}
+            <div className="space-y-2">
+              <label className="text-sm font-mono text-neon-cyan flex items-center gap-2">
+                <Folder size={16} />
+                FOLDER
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="block w-full px-4 py-3 border border-white/10 rounded-md bg-black/50 text-gray-300 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono text-sm"
+              >
+                <option value="">-- UNASSIGNED --</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
             </div>
 
             {/* Visibility */}
@@ -160,8 +185,8 @@ export default function ArticleEditor() {
                 className="block w-full px-4 py-3 border border-white/10 rounded-md bg-black/50 text-gray-300 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all font-mono text-sm"
               >
                 <option value="public">PUBLIC (Everyone)</option>
-                <option value="restricted">RESTRICTED (Logged-in only)</option>
-                <option value="private">PRIVATE (Admin only)</option>
+                <option value="restricted">RESTRICTED (Logged-in)</option>
+                <option value="private">PRIVATE (Admin)</option>
               </select>
             </div>
           </div>
